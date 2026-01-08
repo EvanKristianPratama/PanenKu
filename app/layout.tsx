@@ -1,28 +1,29 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/sonner";
+import { Providers } from "@/components/Providers";
+import { Toaster } from "sonner";
+import { Footer } from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title: "E-commerce UI for PanenKu",
-    description: "Marketplace for farmers",
+    title: "PanenKu - Marketplace Pertanian",
+    description: "Belanja sayur dan buah segar langsung dari petani",
 };
-
-import { Providers } from "@/components/Providers";
 
 export default function RootLayout({
     children,
-}: Readonly<{
+}: {
     children: React.ReactNode;
-}>) {
+}) {
     return (
-        <html lang="en">
-            <body className={inter.className} suppressHydrationWarning>
+        <html lang="id">
+            <body className={inter.className}>
                 <Providers>
                     {children}
-                    <Toaster />
+                    <Footer />
+                    <Toaster position="top-center" />
                 </Providers>
             </body>
         </html>
