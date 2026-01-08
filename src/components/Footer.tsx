@@ -1,117 +1,119 @@
 import Link from 'next/link';
-import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, Sprout, Github } from 'lucide-react';
-import packageJson from '../../package.json';
+import { Instagram, Linkedin, Mail, Phone, MapPin, Sprout, Github, MessageCircle } from 'lucide-react';
 
 export function Footer() {
     return (
-        <footer className="bg-white border-t border-gray-100 pt-16 pb-8">
+        <footer className="bg-white border-t">
             <div className="container mx-auto px-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-                    {/* Brand Section */}
-                    <div className="space-y-6">
-                        <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-200">
-                                <Sprout className="w-6 h-6 text-white" />
+                {/* Main Footer Content */}
+                <div className="py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+                    {/* Brand */}
+                    <div className="lg:col-span-1">
+                        <Link href="/" className="flex items-center gap-2.5 mb-4">
+                            <div className="w-9 h-9 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                                <Sprout className="w-5 h-5 text-white" />
                             </div>
-                            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-600">
-                                PanenKu
-                            </span>
-                        </div>
-                        <p className="text-gray-500 leading-relaxed">
-                            Platform marketplace pertanian modern yang menghubungkan petani lokal langsung dengan konsumen. Segar, Berkualitas, dan Menyejahterakan.
+                            <span className="text-xl font-bold text-gray-900">PanenKu</span>
+                        </Link>
+                        <p className="text-gray-500 text-sm leading-relaxed mb-5">
+                            Marketplace pertanian modern yang menghubungkan petani lokal langsung dengan konsumen.
                         </p>
+                        <a
+                            href="https://wa.me/6287779511667"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-medium hover:bg-green-100 transition-colors"
+                        >
+                            <MessageCircle className="w-4 h-4" />
+                            Chat WhatsApp
+                        </a>
                     </div>
 
-                    {/* Quick Links */}
+                    {/* Links */}
                     <div>
-                        <h3 className="font-bold text-gray-900 mb-6 text-lg">Bantuan</h3>
-                        <ul className="space-y-4">
-                            <li>
-                                <Link href="/help?tab=shopping" className="text-gray-500 hover:text-green-600 transition-colors inline-block">
-                                    Cara Belanja
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/help?tab=shipping" className="text-gray-500 hover:text-green-600 transition-colors inline-block">
-                                    Pengiriman
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/help?tab=returns" className="text-gray-500 hover:text-green-600 transition-colors inline-block">
-                                    Pengembalian Barang
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/help?tab=faq" className="text-gray-500 hover:text-green-600 transition-colors inline-block">
-                                    FAQ
-                                </Link>
-                            </li>
+                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Bantuan</h4>
+                        <ul className="space-y-3">
+                            {[
+                                { label: 'Cara Belanja', href: '/help?tab=shopping' },
+                                { label: 'Pengiriman', href: '/help?tab=shipping' },
+                                { label: 'Pengembalian', href: '/help?tab=returns' },
+                                { label: 'FAQ', href: '/help?tab=faq' },
+                            ].map(link => (
+                                <li key={link.href}>
+                                    <Link href={link.href} className="text-gray-500 hover:text-green-600 text-sm transition-colors">
+                                        {link.label}
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
                     </div>
 
                     {/* Contact */}
                     <div>
-                        <h3 className="font-bold text-gray-900 mb-6 text-lg">Hubungi Kami</h3>
-                        <ul className="space-y-4">
-                            <li className="flex items-start gap-3 text-gray-500">
-                                <MapPin className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                                <span>Bandung, Indonesia</span>
-                            </li>
-                            <li className="flex items-center gap-3 text-gray-500">
-                                <Phone className="w-5 h-5 text-green-600 flex-shrink-0" />
-                                <a href="https://wa.me/6287779511667" target="_blank" rel="noopener noreferrer" className="hover:text-green-600 transition-colors">
+                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Kontak</h4>
+                        <ul className="space-y-3">
+                            <li>
+                                <a href="https://wa.me/6287779511667" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-gray-500 hover:text-green-600 text-sm transition-colors">
+                                    <Phone className="w-4 h-4 text-green-600" />
                                     +62 877-7951-1667
                                 </a>
                             </li>
-                            <li className="flex items-center gap-3 text-gray-500">
-                                <Mail className="w-5 h-5 text-green-600 flex-shrink-0" />
-                                <a href="mailto:evankristian03@gmail.com" className="hover:text-green-600 transition-colors">
+                            <li>
+                                <a href="mailto:evankristian03@gmail.com" className="flex items-center gap-2.5 text-gray-500 hover:text-green-600 text-sm transition-colors">
+                                    <Mail className="w-4 h-4 text-green-600" />
                                     evankristian03@gmail.com
                                 </a>
+                            </li>
+                            <li className="flex items-center gap-2.5 text-gray-500 text-sm">
+                                <MapPin className="w-4 h-4 text-green-600" />
+                                Bandung, Indonesia
                             </li>
                         </ul>
                     </div>
 
-                    {/* Newsletter or Info */}
+                    {/* Social */}
                     <div>
-                        <h3 className="font-bold text-gray-900 mb-6 text-lg">Informasi</h3>
-                        <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
-                            <h4 className="font-semibold text-green-800 mb-2">Punya pertanyaan?</h4>
-                            <p className="text-sm text-gray-500 mb-4">Tim support kami siap membantu Anda 24/7 untuk pengalaman belanja terbaik.</p>
+                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Sosial Media</h4>
+                        <div className="flex gap-3">
                             <a
-                                href="https://wa.me/6287779511667"
+                                href="https://www.instagram.com/evankristiannn/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="block w-full text-center bg-white border border-green-200 text-green-700 font-medium py-2.5 rounded-xl hover:bg-green-50 transition-colors text-sm"
+                                className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-500 hover:bg-green-100 hover:text-green-600 transition-colors"
+                                aria-label="Instagram"
                             >
-                                Chat WhatsApp
+                                <Instagram className="w-5 h-5" />
+                            </a>
+                            <a
+                                href="https://www.linkedin.com/in/evan-pratama-196119271/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-500 hover:bg-green-100 hover:text-green-600 transition-colors"
+                                aria-label="LinkedIn"
+                            >
+                                <Linkedin className="w-5 h-5" />
+                            </a>
+                            <a
+                                href="https://github.com/EvanKristianPratama"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-500 hover:bg-green-100 hover:text-green-600 transition-colors"
+                                aria-label="GitHub"
+                            >
+                                <Github className="w-5 h-5" />
                             </a>
                         </div>
                     </div>
                 </div>
 
-                <div className="border-t border-gray-100 pt-8 mt-8">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div className="text-center md:text-left">
-                            <p className="text-gray-500 text-sm">
-                                © 2026 <span className="font-semibold text-gray-900">PanenKu</span>. All rights reserved.
-                            </p>
-                            <p className="text-gray-400 text-xs mt-1">
-                                Created with ❤️ by <span className="font-medium text-gray-600">Evan Kristian Pratama</span>
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <a href="https://www.instagram.com/evankristiannn/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-green-600 transition-colors">
-                                <Instagram className="w-5 h-5" />
-                            </a>
-                            <a href="https://www.linkedin.com/in/evan-pratama-196119271/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-green-600 transition-colors">
-                                <Linkedin className="w-5 h-5" />
-                            </a>
-                            <a href="https://github.com/EvanKristianPratama" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-green-600 transition-colors">
-                                <Github className="w-5 h-5" />
-                            </a>
-                        </div>
-                    </div>
+                {/* Bottom Bar */}
+                <div className="border-t py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <p className="text-gray-400 text-sm">
+                        © 2026 PanenKu. All rights reserved.
+                    </p>
+                    <p className="text-gray-400 text-xs">
+                        Created with ❤️ by <span className="font-medium text-gray-500">Evan Kristian Pratama</span>
+                    </p>
                 </div>
             </div>
         </footer>
