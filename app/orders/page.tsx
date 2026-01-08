@@ -186,17 +186,12 @@ function OrdersList() {
                                             </p>
                                         </div>
 
-                                        {(!order.paymentStatus || order.paymentStatus === 'unpaid' || order.paymentStatus === 'rejected') && order.status !== 'cancelled' && (
+                                        {(!order.paymentStatus || order.paymentStatus === 'unpaid' || order.paymentStatus === 'rejected' || order.paymentStatus === 'pending_verification') && order.status !== 'cancelled' && (
                                             <Link href={`/payment/${order._id}`}>
-                                                <Button className="bg-green-600 hover:bg-green-700">
-                                                    Bayar Sekarang
+                                                <Button className={order.paymentStatus === 'pending_verification' ? "bg-orange-500 hover:bg-orange-600" : "bg-green-600 hover:bg-green-700"}>
+                                                    {order.paymentStatus === 'pending_verification' ? 'Lanjutkan Pembayaran' : 'Bayar Sekarang'}
                                                 </Button>
                                             </Link>
-                                        )}
-                                        {order.paymentStatus === 'pending_verification' && (
-                                            <Button variant="outline" disabled className="opacity-75 cursor-not-allowed">
-                                                Menunggu Verifikasi
-                                            </Button>
                                         )}
                                     </div>
                                 </CardContent>

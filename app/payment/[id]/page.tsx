@@ -202,8 +202,14 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
                                     <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
                                 </div>
                                 <div>
-                                    <p className="font-medium text-yellow-800">Menunggu Verifikasi</p>
-                                    <p className="text-sm text-yellow-600">Bukti pembayaran Anda sedang dicek oleh admin.</p>
+                                    <p className="font-medium text-yellow-800">
+                                        {order.snap_token ? 'Menunggu Pembayaran' : 'Menunggu Verifikasi'}
+                                    </p>
+                                    <p className="text-sm text-yellow-600">
+                                        {order.snap_token
+                                            ? 'Silakan selesaikan pembayaran Anda.'
+                                            : 'Bukti pembayaran Anda sedang dicek oleh admin.'}
+                                    </p>
                                 </div>
                             </div>
                         )}
@@ -219,142 +225,43 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
                             </div>
                         )}
 
-                        {/* Payment Options (Show only if Unpaid/Rejected) */}
-                        {(!order.paymentStatus || order.paymentStatus === 'unpaid' || order.paymentStatus === 'rejected') && (
-                            <>
+                        {/* Payment Options (Show if Unpaid, Rejected, OR Pending Midtrans) */}
+                        {(!order.paymentStatus || order.paymentStatus === 'unpaid' || order.paymentStatus === 'rejected' || (order.paymentStatus === 'pending_verification' && order.snap_token)) && (
+                            <div className="space-y-6">
                                 {/* Midtrans Payment */}
-                                <div className="mb-6">
-                                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                        <Globe className="w-5 h-5 text-indigo-600" />
-                                        Pembayaran Otomatis
-                                    </h3>
-                                    <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div className="flex items-center gap-3">
-                                                <img
-                                                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Logo_midtrans.png/1200px-Logo_midtrans.png"
-                                                    alt="Midtrans"
-                                                    className="h-6 object-contain"
-                                                />
-                                                <div>
-                                                    <p className="font-semibold text-indigo-900">Virtual Account & QRIS</p>
-                                                    <p className="text-xs text-indigo-600">BCA, Mandiri, BRI, QRIS</p>
-                                                </div>
-                                            </div>
-                                            <div className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs font-semibold">
-                                                Recomended
-                                            </div>
+                                <div className="text-center">
+                                    <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+
+                                        {/* Deadline Info */}
+                                        <div className="mb-6 p-4 bg-orange-50 rounded-xl border border-orange-100">
+                                            <p className="text-sm text-orange-600 mb-1">Batas Waktu Pembayaran</p>
+                                            <p className="text-lg font-bold text-orange-800">
+                                                {new Date(new Date(order.createdAt).getTime() + 24 * 60 * 60 * 1000).toLocaleString('id-ID', {
+                                                    day: 'numeric', month: 'long', year: 'numeric',
+                                                    hour: '2-digit', minute: '2-digit'
+                                                })}
+                                            </p>
                                         </div>
+
                                         <Button
-                                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                                            className="w-full bg-green-600 hover:bg-green-700 text-white py-6 text-lg font-semibold rounded-xl shadow-lg shadow-green-200"
                                             onClick={handleMidtransPayment}
                                             disabled={uploading}
                                         >
-                                            {uploading ? 'Memuat...' : 'Bayar via Midtrans'}
+                                            {uploading ? 'Memuat...' : (order.snap_token ? 'Lanjutkan Pembayaran' : 'Bayar Sekarang')}
                                         </Button>
-                                    </div>
-                                </div>
 
-                                {/* Bank Info */}
-                                <div>
-                                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                        <CreditCard className="w-5 h-5 text-green-600" />
-                                        Metode Transfer Bank
-                                    </h3>
-                                    <div className="space-y-3">
-                                        <div className="bg-white border rounded-xl p-4 flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center font-bold text-blue-700">
-                                                    BCA
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm text-gray-500">Bank Central Asia</p>
-                                                    <p className="font-mono font-medium text-lg">123 456 7890</p>
-                                                    <p className="text-xs text-gray-400">a.n. PT PanenKu Sejahtera</p>
-                                                </div>
-                                            </div>
-                                            <Button variant="ghost" size="icon" onClick={() => copyToClipboard('1234567890')}>
-                                                <Copy className="w-4 h-4 text-gray-400" />
-                                            </Button>
-                                        </div>
-                                        <div className="bg-white border rounded-xl p-4 flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-yellow-50 rounded-lg flex items-center justify-center font-bold text-yellow-700">
-                                                    MN
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm text-gray-500">Bank Mandiri</p>
-                                                    <p className="font-mono font-medium text-lg">098 765 4321</p>
-                                                    <p className="text-xs text-gray-400">a.n. PT PanenKu Sejahtera</p>
-                                                </div>
-                                            </div>
-                                            <Button variant="ghost" size="icon" onClick={() => copyToClipboard('0987654321')}>
-                                                <Copy className="w-4 h-4 text-gray-400" />
-                                            </Button>
+                                        <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400">
+                                            <span>Secure Payment by</span>
+                                            <img
+                                                src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Logo_midtrans.png/1200px-Logo_midtrans.png"
+                                                alt="Midtrans"
+                                                className="h-4 object-contain opacity-60 grayscale hover:grayscale-0 transition-all"
+                                            />
                                         </div>
                                     </div>
                                 </div>
-
-
-
-                                {/* Upload Proof */}
-                                <div className="mt-6">
-                                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                        <Upload className="w-5 h-5 text-green-600" />
-                                        Upload Bukti Pembayaran
-                                    </h3>
-
-                                    {order.paymentStatus === 'rejected' && (
-                                        <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4 text-sm text-red-600">
-                                            Pembayaran sebelumnya ditolak. Silakan upload bukti pembayaran yang valid.
-                                        </div>
-                                    )}
-
-                                    <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:border-green-500 transition-colors">
-                                        {preview ? (
-                                            <div className="space-y-4">
-                                                <img
-                                                    src={preview}
-                                                    alt="Preview"
-                                                    className="max-h-64 mx-auto rounded-lg shadow-sm"
-                                                />
-                                                <Button variant="outline" onClick={() => {
-                                                    setFile(null);
-                                                    setPreview(null);
-                                                }}>
-                                                    Ganti Foto
-                                                </Button>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-4">
-                                                <div className="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-2">
-                                                    <Upload className="w-8 h-8" />
-                                                </div>
-                                                <div>
-                                                    <Button variant="outline" className="relative">
-                                                        Pilih Gambar
-                                                        <input
-                                                            type="file"
-                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                                            accept="image/*"
-                                                            onChange={handleFileChange}
-                                                        />
-                                                    </Button>
-                                                    <p className="text-sm text-gray-400 mt-2">JPG, PNG maks 2MB</p>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <Button
-                                        className="w-full mt-6 bg-green-600 hover:bg-green-700 py-6 text-lg"
-                                        disabled={!file || uploading}
-                                        onClick={() => handlePayment('manual')}
-                                    >
-                                        {uploading ? 'Mengupload...' : 'Konfirmasi Pembayaran'}
-                                    </Button>
-                                </div>
-                            </>
+                            </div>
                         )}
                     </CardContent>
                 </Card>
