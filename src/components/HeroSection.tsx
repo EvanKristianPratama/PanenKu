@@ -10,7 +10,7 @@ export function HeroSection() {
     };
 
     return (
-        <div className="relative overflow-hidden bg-white pt-16">
+        <div className="relative overflow-hidden bg-white pt-20">
             {/* Background decoration */}
             <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-white to-emerald-50" />
             <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-green-100/50 to-transparent" />

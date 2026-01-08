@@ -147,7 +147,7 @@ export function FeaturedSections({ products, userName }: FeaturedSectionsProps) 
     return (
         <div className="bg-gray-50">
             {/* Hero Welcome Banner */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-green-600 via-green-500 to-emerald-500">
+            <div className="relative overflow-hidden bg-gradient-to-br from-green-600 via-green-500 to-emerald-500 pt-20">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10">
                     <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full filter blur-3xl transform -translate-x-1/2 -translate-y-1/2" />
