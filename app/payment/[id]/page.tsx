@@ -295,38 +295,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
                                     </div>
                                 </div>
 
-                                {/* E-Wallet (Dummy / Simulator) */}
-                                <div className="mt-6">
-                                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                        <Wallet className="w-5 h-5 text-blue-600" />
-                                        E-Wallet (Otomatis)
-                                    </h3>
-                                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div className="flex items-center gap-3">
-                                                <img
-                                                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Logo_dana_blue.svg/2560px-Logo_dana_blue.svg.png"
-                                                    alt="DANA"
-                                                    className="h-8 object-contain"
-                                                />
-                                                <div>
-                                                    <p className="font-semibold text-blue-900">DANA</p>
-                                                    <p className="text-xs text-blue-600">Terverifikasi Otomatis</p>
-                                                </div>
-                                            </div>
-                                            <Button variant="ghost" size="icon" onClick={() => copyToClipboard('1234567890')}>
-                                                <Copy className="w-4 h-4 text-gray-400" />
-                                            </Button>
-                                        </div>
-                                        <Button
-                                            className="w-full bg-[#118EE9] hover:bg-[#0b6ab0] text-white"
-                                            onClick={() => handlePayment('dana')}
-                                            disabled={uploading}
-                                        >
-                                            {uploading ? 'Memproses...' : 'Bayar dengan DANA'}
-                                        </Button>
-                                    </div>
-                                </div>
+
 
                                 {/* Upload Proof */}
                                 <div className="mt-6">
