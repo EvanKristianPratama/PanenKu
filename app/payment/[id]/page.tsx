@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,8 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Upload, CreditCard, Copy, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Upload, CreditCard, Copy, CheckCircle, ArrowLeft, Wallet, Globe } from 'lucide-react';
 import Link from 'next/link';
+import Script from 'next/script';
 
 export default function PaymentPage({ params }: { params: { id: string } }) {
     const { data: session, status } = useSession();
@@ -21,6 +21,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
     const [uploading, setUploading] = useState(false);
     const [file, setFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
+    const [snapToken, setSnapToken] = useState<string | null>(null);
 
     useEffect(() => {
         if (status === 'authenticated') {
@@ -34,12 +35,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
         try {
             const res = await fetch(`/api/orders?id=${params.id}`);
             const data = await res.json();
-            // The API returns { orders: [...] } usually, but for single ID fetch we might need to adjust or filter
-            // Assuming the current /api/orders might return a list even for one.
-            // Let's assume we need to filter or the API handles it.
-            // Actually, /api/orders returns all orders for user.
-            // Optimization: Filter client side for now as the API might not support ID filter yet.
-            const userOrder = data.orders.find((o: any) => o._id === params.id);
+            const userOrder = data.orders?.find((o: any) => o._id === params.id);
             if (userOrder) {
                 setOrder(userOrder);
             } else {
@@ -57,6 +53,10 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
         if (selectedFile) {
+            if (selectedFile.size > 2 * 1024 * 1024) {
+                toast.error('Ukuran file maksimal 2MB');
+                return;
+            }
             setFile(selectedFile);
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -66,31 +66,85 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
         }
     };
 
-    const handleUpload = async () => {
-        if (!file || !preview) {
+    const handleMidtransPayment = async () => {
+        try {
+            setUploading(true);
+
+            // Generate token
+            const res = await fetch('/api/midtrans/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: order.orderNumber,
+                    grossAmount: order.totalAmount
+                })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to get token');
+
+            setSnapToken(data.token);
+
+            // @ts-ignore
+            if (window.snap) {
+                // @ts-ignore
+                window.snap.pay(data.token, {
+                    onSuccess: function (result: any) {
+                        toast.success('Pembayaran Berhasil! Memverifikasi...');
+                        // Optionally call notification endpoint or just refresh
+                        setTimeout(() => fetchOrder(), 2000);
+                    },
+                    onPending: function (result: any) {
+                        toast.info('Menunggu pembayaran...');
+                        fetchOrder();
+                    },
+                    onError: function (result: any) {
+                        toast.error('Pembayaran gagal!');
+                    },
+                    onClose: function () {
+                        toast.warning('Pembayaran belum diselesaikan');
+                    }
+                });
+            } else {
+                toast.error('Sistem pembayaran belum siap. Silakan refresh halaman.');
+            }
+
+        } catch (error) {
+            console.error('Midtrans Error:', error);
+            toast.error('Gagal memuat pembayaran otomatis');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handlePayment = async (method: 'manual' | 'dana' = 'manual') => {
+        if (method === 'manual' && (!file || !preview)) {
             toast.error('Silakan pilih bukti pembayaran terlebih dahulu');
             return;
         }
 
         setUploading(true);
         try {
+            const body = method === 'dana'
+                ? { paymentMethod: 'dana' }
+                : { paymentProof: preview, paymentMethod: 'manual' };
+
             const res = await fetch(`/api/orders/${params.id}/payment`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    paymentProof: preview,
-                }),
+                body: JSON.stringify(body),
             });
 
-            if (!res.ok) throw new Error('Upload failed');
+            if (!res.ok) throw new Error('Payment failed');
 
-            toast.success('Bukti pembayaran berhasil diupload!');
-            fetchOrder(); // Refresh status
+            const data = await res.json();
+            toast.success(data.message || 'Pembayaran berhasil!');
+            fetchOrder();
         } catch (error) {
-            console.error('Upload error:', error);
-            toast.error('Gagal mengupload bukti pembayaran');
+            console.error('Payment error:', error);
+            toast.error('Gagal memproses pembayaran');
         } finally {
             setUploading(false);
         }
@@ -114,6 +168,11 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
     return (
         <div className="min-h-screen bg-gray-50 pb-10">
             <Navbar />
+            <Script
+                src="https://app.sandbox.midtrans.com/snap/snap.js"
+                data-client-key="SB-Mid-client-owXNSzDK0hPZ8vRZ"
+                strategy="lazyOnload"
+            />
             <div className="pt-24 container mx-auto px-4 max-w-2xl">
                 <Link href="/orders">
                     <Button variant="ghost" className="mb-4 pl-0 text-gray-500 hover:text-green-600">
@@ -136,7 +195,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
                         </div>
                     </CardHeader>
                     <CardContent className="p-6 space-y-8">
-                        {/* Status Alert */}
+                        {/* Status Alert: Pending Verification */}
                         {order.paymentStatus === 'pending_verification' && (
                             <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-center gap-3">
                                 <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center shrink-0">
@@ -149,6 +208,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
                             </div>
                         )}
 
+                        {/* Status Alert: Paid */}
                         {order.paymentStatus === 'paid' && (
                             <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
                                 <CheckCircle className="w-6 h-6 text-green-600" />
@@ -159,8 +219,42 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
                             </div>
                         )}
 
-                        {(order.paymentStatus === 'unpaid' || order.paymentStatus === 'rejected') && (
+                        {/* Payment Options (Show only if Unpaid/Rejected) */}
+                        {(!order.paymentStatus || order.paymentStatus === 'unpaid' || order.paymentStatus === 'rejected') && (
                             <>
+                                {/* Midtrans Payment */}
+                                <div className="mb-6">
+                                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                        <Globe className="w-5 h-5 text-indigo-600" />
+                                        Pembayaran Otomatis
+                                    </h3>
+                                    <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <img
+                                                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Logo_midtrans.png/1200px-Logo_midtrans.png"
+                                                    alt="Midtrans"
+                                                    className="h-6 object-contain"
+                                                />
+                                                <div>
+                                                    <p className="font-semibold text-indigo-900">Virtual Account & QRIS</p>
+                                                    <p className="text-xs text-indigo-600">BCA, Mandiri, BRI, QRIS</p>
+                                                </div>
+                                            </div>
+                                            <div className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs font-semibold">
+                                                Recomended
+                                            </div>
+                                        </div>
+                                        <Button
+                                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                                            onClick={handleMidtransPayment}
+                                            disabled={uploading}
+                                        >
+                                            {uploading ? 'Memuat...' : 'Bayar via Midtrans'}
+                                        </Button>
+                                    </div>
+                                </div>
+
                                 {/* Bank Info */}
                                 <div>
                                     <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -201,8 +295,41 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
                                     </div>
                                 </div>
 
+                                {/* E-Wallet (Dummy / Simulator) */}
+                                <div className="mt-6">
+                                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                        <Wallet className="w-5 h-5 text-blue-600" />
+                                        E-Wallet (Otomatis)
+                                    </h3>
+                                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <img
+                                                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Logo_dana_blue.svg/2560px-Logo_dana_blue.svg.png"
+                                                    alt="DANA"
+                                                    className="h-8 object-contain"
+                                                />
+                                                <div>
+                                                    <p className="font-semibold text-blue-900">DANA</p>
+                                                    <p className="text-xs text-blue-600">Terverifikasi Otomatis</p>
+                                                </div>
+                                            </div>
+                                            <Button variant="ghost" size="icon" onClick={() => copyToClipboard('1234567890')}>
+                                                <Copy className="w-4 h-4 text-gray-400" />
+                                            </Button>
+                                        </div>
+                                        <Button
+                                            className="w-full bg-[#118EE9] hover:bg-[#0b6ab0] text-white"
+                                            onClick={() => handlePayment('dana')}
+                                            disabled={uploading}
+                                        >
+                                            {uploading ? 'Memproses...' : 'Bayar dengan DANA'}
+                                        </Button>
+                                    </div>
+                                </div>
+
                                 {/* Upload Proof */}
-                                <div>
+                                <div className="mt-6">
                                     <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                                         <Upload className="w-5 h-5 text-green-600" />
                                         Upload Bukti Pembayaran
@@ -253,7 +380,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
                                     <Button
                                         className="w-full mt-6 bg-green-600 hover:bg-green-700 py-6 text-lg"
                                         disabled={!file || uploading}
-                                        onClick={handleUpload}
+                                        onClick={() => handlePayment('manual')}
                                     >
                                         {uploading ? 'Mengupload...' : 'Konfirmasi Pembayaran'}
                                     </Button>

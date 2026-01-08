@@ -186,7 +186,7 @@ function OrdersList() {
                                             </p>
                                         </div>
 
-                                        {(order.paymentStatus === 'unpaid' || order.paymentStatus === 'rejected') && order.status !== 'cancelled' && (
+                                        {(!order.paymentStatus || order.paymentStatus === 'unpaid' || order.paymentStatus === 'rejected') && order.status !== 'cancelled' && (
                                             <Link href={`/payment/${order._id}`}>
                                                 <Button className="bg-green-600 hover:bg-green-700">
                                                     Bayar Sekarang
