@@ -77,9 +77,6 @@ function OrdersList() {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Pesanan Saya</h1>
-            <p className="text-gray-500 mb-8">Lacak status pesanan Anda</p>
-
             {/* Success message */}
             {successOrder && (
                 <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex items-center gap-3">
@@ -180,7 +177,7 @@ function OrdersList() {
 
 export default function OrdersPage() {
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 pt-20">
             <Navbar />
             <Suspense fallback={
                 <div className="flex items-center justify-center py-20">

@@ -114,41 +114,60 @@ export function Navbar() {
                       }`}
                   >
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium ${isScrolled
-                      ? 'bg-green-100 text-green-700'
-                      : (session && pathname === '/')
-                        ? 'bg-white/30 text-white'
-                        : 'bg-green-100 text-green-700'
+                        ? 'bg-green-100 text-green-700'
+                        : (session && pathname === '/')
+                          ? 'bg-white/30 text-white'
+                          : 'bg-green-100 text-green-700'
                       }`}>
                       {session.user.name?.charAt(0).toUpperCase()}
                     </div>
                     <span className="hidden sm:inline">{session.user.name?.split(' ')[0]}</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52 mt-2">
-                  <DropdownMenuLabel className="font-normal">
-                    <p className="font-medium text-gray-900">{session.user.name}</p>
-                    <p className="text-xs text-gray-500 truncate">{session.user.email}</p>
+                <DropdownMenuContent align="end" className="w-64 p-2 mt-2">
+                  <DropdownMenuLabel className="font-normal p-3 bg-gray-50 rounded-lg mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold">
+                        {session.user.name?.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 truncate bg-transparent">{session.user.name}</p>
+                        <p className="text-xs text-gray-500 truncate bg-transparent">{session.user.email}</p>
+                      </div>
+                    </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link href="/profile" className="flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      Profile
+                  <DropdownMenuSeparator className="my-1" />
+                  <DropdownMenuItem asChild className="cursor-pointer rounded-md p-2 hover:bg-green-50 focus:bg-green-50 focus:text-green-700">
+                    <Link href="/profile" className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                        <User className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Profil Saya</p>
+                        <p className="text-[10px] text-gray-500">Lihat biodata diri</p>
+                      </div>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link href="/orders" className="flex items-center gap-2">
-                      <ShoppingCart className="w-4 h-4" />
-                      Pesanan Saya
+                  <DropdownMenuItem asChild className="cursor-pointer rounded-md p-2 hover:bg-green-50 focus:bg-green-50 focus:text-green-700">
+                    <Link href="/orders" className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-600">
+                        <ShoppingCart className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Pesanan Saya</p>
+                        <p className="text-[10px] text-gray-500">Cek status pesanan</p>
+                      </div>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="my-1" />
                   <DropdownMenuItem
                     onClick={handleLogout}
-                    className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer gap-2"
+                    className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer gap-2.5 rounded-md p-2"
                   >
-                    <LogOut className="w-4 h-4" />
-                    Keluar
+                    <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
+                      <LogOut className="w-4 h-4" />
+                    </div>
+                    <span className="font-medium">Keluar</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
