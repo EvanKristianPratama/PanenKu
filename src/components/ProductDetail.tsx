@@ -34,19 +34,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Back button */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <Link href="/">
-            <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Kembali ke Produk
-            </Button>
-          </Link>
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-gray-50 pt-20">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Product Image */}

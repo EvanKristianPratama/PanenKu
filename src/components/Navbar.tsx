@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
+import { CartPreview } from './CartPreview';
 
 export function Navbar() {
   const { cartCount } = useCart();
@@ -62,12 +63,13 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 ${isScrolled
-                ? 'bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-200'
-                : 'bg-white/20 backdrop-blur-sm'
+              ? 'bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-200'
+              : (session && pathname === '/') ? 'bg-white/20 backdrop-blur-sm' : 'bg-green-100'
               }`}>
-              <Sprout className={`w-5 h-5 transition-colors ${isScrolled ? 'text-white' : 'text-green-600'}`} />
+              <Sprout className={`w-5 h-5 transition-colors ${isScrolled ? 'text-white' : (session && pathname === '/') ? 'text-white' : 'text-green-600'
+                }`} />
             </div>
-            <span className={`text-xl font-bold transition-colors ${isScrolled ? 'text-gray-900' : 'text-green-700'
+            <span className={`text-xl font-bold transition-colors ${isScrolled ? 'text-gray-900' : (session && pathname === '/') ? 'text-white' : 'text-green-700'
               }`}>
               PanenKu
             </span>
@@ -82,8 +84,8 @@ export function Navbar() {
                   variant="ghost"
                   size="sm"
                   className={`transition-colors ${isScrolled
-                      ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                      : 'text-green-700 hover:text-green-900 hover:bg-green-100'
+                    ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    : (session && pathname === '/') ? 'text-white hover:bg-white/20' : 'text-green-700 hover:text-green-900 hover:bg-green-100'
                     } ${pathname?.startsWith('/admin') ? 'font-medium' : ''}`}
                 >
                   Admin
@@ -91,24 +93,13 @@ export function Navbar() {
               </Link>
             )}
 
-            {/* Cart */}
-            <Link href="/cart">
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`relative transition-colors ${isScrolled
-                    ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                    : 'text-green-700 hover:text-green-900 hover:bg-green-100'
-                  }`}
-              >
-                <ShoppingCart className="w-5 h-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-medium rounded-full flex items-center justify-center">
-                    {cartCount > 9 ? '9+' : cartCount}
-                  </span>
-                )}
-              </Button>
-            </Link>
+            {/* Cart Preview - Only show when logged in */}
+            {session && (
+              <CartPreview
+                isScrolled={isScrolled}
+                isLoggedIn={!!session && pathname === '/'}
+              />
+            )}
 
             {/* User Menu */}
             {session?.user ? (
@@ -118,11 +109,15 @@ export function Navbar() {
                     variant="ghost"
                     size="sm"
                     className={`gap-2 transition-colors ${isScrolled
-                        ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                        : 'text-green-700 hover:text-green-900 hover:bg-green-100'
+                      ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      : (session && pathname === '/') ? 'text-white hover:bg-white/20' : 'text-green-700 hover:text-green-900 hover:bg-green-100'
                       }`}
                   >
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium ${isScrolled ? 'bg-green-100 text-green-700' : 'bg-white/30 text-green-700'
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium ${isScrolled
+                      ? 'bg-green-100 text-green-700'
+                      : (session && pathname === '/')
+                        ? 'bg-white/30 text-white'
+                        : 'bg-green-100 text-green-700'
                       }`}>
                       {session.user.name?.charAt(0).toUpperCase()}
                     </div>
@@ -162,8 +157,8 @@ export function Navbar() {
                 <Button
                   size="sm"
                   className={`transition-all ${isScrolled
-                      ? 'bg-green-600 hover:bg-green-700 text-white shadow-sm'
-                      : 'bg-green-600 hover:bg-green-700 text-white'
+                    ? 'bg-green-600 hover:bg-green-700 text-white shadow-sm'
+                    : 'bg-green-600 hover:bg-green-700 text-white'
                     }`}
                 >
                   Masuk

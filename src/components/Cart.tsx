@@ -2,7 +2,6 @@
 
 import { Button } from './ui/button';
 import { Card, CardContent, CardFooter } from './ui/card';
-import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Trash2, Plus, Minus, ShoppingBag, LogIn, CheckCircle, MapPin, FileText } from 'lucide-react';
@@ -101,7 +100,7 @@ export function Cart() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b">
+      <div className="bg-white border-b pt-12">
         <div className="container mx-auto px-4 py-6">
           <h1 className="text-2xl font-bold text-gray-900">Keranjang Belanja</h1>
           <p className="text-gray-500">{items.length} produk</p>
