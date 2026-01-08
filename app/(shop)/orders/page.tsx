@@ -5,7 +5,6 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams, redirect } from 'next/navigation';
-import { Navbar } from '@/components/Navbar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -207,7 +206,6 @@ function OrdersList() {
 export default function OrdersPage() {
     return (
         <div className="min-h-screen bg-gray-50 pt-20">
-            <Navbar />
             <Suspense fallback={
                 <div className="flex items-center justify-center py-20">
                     <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />

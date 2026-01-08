@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Toaster } from "sonner";
-import { ConditionalFooter } from "@/components/ConditionalFooter";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +21,6 @@ export default function RootLayout({
             <body className={inter.className}>
                 <Providers>
                     {children}
-                    <ConditionalFooter />
                     <Toaster position="top-center" />
                 </Providers>
             </body>

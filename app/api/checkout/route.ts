@@ -35,7 +35,7 @@ export async function POST(request: Request) {
         }
 
         // Build order items and update stock
-        const orderItems: CartItemInput[] = [];
+        const orderItems: any[] = [];
         let totalAmount = 0;
 
         for (const item of items) {
@@ -59,6 +59,7 @@ export async function POST(request: Request) {
                 price: item.price,
                 quantity: item.quantity,
                 unit: item.unit,
+                farmer: product.farmer || 'PanenKu', // Add farmer name from product
             });
 
             // Reduce stock and increase sold count

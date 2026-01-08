@@ -7,6 +7,7 @@ export interface IOrderItem {
     price: number;
     quantity: number;
     unit: string;
+    farmer?: string; // Farmer name for order filtering
 }
 
 export interface IOrder extends Document {
@@ -34,6 +35,7 @@ const OrderItemSchema = new Schema<IOrderItem>(
         price: { type: Number, required: true },
         quantity: { type: Number, required: true },
         unit: { type: String, required: true },
+        farmer: { type: String }, // Farmer name for filtering orders by mitra
     },
     { _id: false }
 );

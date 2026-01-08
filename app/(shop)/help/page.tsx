@@ -2,7 +2,6 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Navbar } from '@/components/Navbar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -168,8 +167,7 @@ function HelpContent() {
 
 export default function HelpPage() {
     return (
-        <div className="min-h-screen bg-gray-50">
-            <Navbar />
+        <div className="min-h-screen bg-gray-50 pt-20">
             <Suspense fallback={
                 <div className="flex items-center justify-center py-20">
                     <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />

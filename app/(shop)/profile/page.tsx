@@ -1,7 +1,6 @@
 'use client';
 
 import { useSession, signOut } from "next-auth/react";
-import { Navbar } from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User, Mail, Shield, LogOut, ShoppingBag, Heart, Settings, MapPin, Star, Truck, CheckCircle } from "lucide-react";
@@ -53,8 +52,6 @@ export default function ProfilePage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <Navbar />
-
             <div className="pt-24 pb-12 container mx-auto px-4">
                 <div className="max-w-5xl mx-auto">
                     {/* Profile Header Card */}
@@ -167,8 +164,8 @@ export default function ProfilePage() {
                                                     <div className="flex items-center justify-between mb-1">
                                                         <p className="font-medium text-gray-900">{order.orderNumber}</p>
                                                         <span className={`text-xs px-2 py-1 rounded-full ${order.status === 'delivered' ? 'bg-green-100 text-green-700' :
-                                                                order.status === 'shipped' ? 'bg-purple-100 text-purple-700' :
-                                                                    'bg-yellow-100 text-yellow-700'
+                                                            order.status === 'shipped' ? 'bg-purple-100 text-purple-700' :
+                                                                'bg-yellow-100 text-yellow-700'
                                                             }`}>
                                                             {order.status === 'pending' ? 'Menunggu' :
                                                                 order.status === 'processing' ? 'Diproses' :

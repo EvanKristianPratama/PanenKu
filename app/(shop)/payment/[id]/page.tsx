@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Navbar } from '@/components/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -167,7 +166,6 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 
     return (
         <div className="min-h-screen bg-gray-50 pb-10">
-            <Navbar />
             <Script
                 src="https://app.sandbox.midtrans.com/snap/snap.js"
                 data-client-key="SB-Mid-client-owXNSzDK0hPZ8vRZ"

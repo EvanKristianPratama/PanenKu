@@ -104,57 +104,60 @@ export function Register() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen w-full flex">
       {/* Left side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
-        <div className="w-full max-w-md">
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-10 sm:px-10 lg:px-16 bg-white">
+        <div className="w-full max-w-md space-y-6">
           {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-            <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center">
-              <Sprout className="w-7 h-7 text-white" />
+          <div className="lg:hidden flex justify-center mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center">
+                <Sprout className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-2xl font-bold text-gray-900">PanenKu</span>
             </div>
-            <span className="text-2xl font-bold text-gray-900">PanenKu</span>
           </div>
 
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Buat Akun Baru 🌱</h2>
-            <p className="text-gray-500">Daftar untuk mulai berbelanja</p>
+          <div className="text-center space-y-2">
+            <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Buat Akun Baru 🌱</h2>
+            <p className="text-gray-500 text-lg">Mulai perjalanan belanja segar Anda</p>
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+            <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+              <div className="w-1 h-4 bg-red-500 rounded-full" />
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-gray-700 font-medium">Nama Lengkap</Label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Label htmlFor="name" className="text-sm font-semibold text-gray-700">Nama Lengkap</Label>
+              <div className="relative group">
+                <User className="absolute left-4 top-3.5 text-gray-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
                 <Input
                   id="name"
                   type="text"
-                  placeholder="Nama lengkap Anda"
+                  placeholder="Jhon Doe"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="pl-11 h-12 bg-white border-gray-200"
+                  className="pl-12 h-12 bg-gray-50 border-gray-200 focus:border-green-500 focus:ring-green-500/20 transition-all rounded-xl"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700 font-medium">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Label htmlFor="email" className="text-sm font-semibold text-gray-700">Email</Label>
+              <div className="relative group">
+                <Mail className="absolute left-4 top-3.5 text-gray-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="nama@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-11 h-12 bg-white border-gray-200"
+                  className="pl-12 h-12 bg-gray-50 border-gray-200 focus:border-green-500 focus:ring-green-500/20 transition-all rounded-xl"
                   required
                 />
               </div>
@@ -162,32 +165,32 @@ export function Register() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-700 font-medium">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Label htmlFor="password" className="text-sm font-semibold text-gray-700">Password</Label>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-3.5 text-gray-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
                   <Input
                     id="password"
                     type="password"
-                    placeholder="••••••••"
+                    placeholder="••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-11 h-12 bg-white border-gray-200"
+                    className="pl-12 h-12 bg-gray-50 border-gray-200 focus:border-green-500 focus:ring-green-500/20 transition-all rounded-xl"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-gray-700 font-medium">Konfirmasi</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">Konfirmasi</Label>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-3.5 text-gray-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
                   <Input
                     id="confirmPassword"
                     type="password"
-                    placeholder="••••••••"
+                    placeholder="••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-11 h-12 bg-white border-gray-200"
+                    className="pl-12 h-12 bg-gray-50 border-gray-200 focus:border-green-500 focus:ring-green-500/20 transition-all rounded-xl"
                     required
                   />
                 </div>
@@ -196,25 +199,39 @@ export function Register() {
 
             <Button
               type="submit"
-              className="w-full h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-lg font-medium shadow-lg shadow-green-500/25 mt-2"
+              className="w-full h-14 bg-green-600 hover:bg-green-700 text-white text-lg font-bold rounded-xl shadow-lg shadow-green-600/20 hover:shadow-green-600/30 transition-all mt-4"
               disabled={loading}
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Mendaftar...</span>
+                </div>
               ) : (
-                <>
+                <span className="flex items-center justify-center gap-2">
                   Daftar Sekarang
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </>
+                  <ArrowRight className="w-5 h-5" />
+                </span>
               )}
             </Button>
           </form>
 
-          <div className="mt-8 text-center">
-            <p className="text-gray-500">
+          {/* Divider */}
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-100"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white text-gray-400 font-medium">Atau</span>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <p className="text-gray-600">
               Sudah punya akun?{' '}
-              <Link href="/login" className="text-green-600 hover:text-green-700 font-semibold hover:underline">
-                Masuk di sini
+              <Link href="/login" className="text-green-600 font-bold hover:text-green-700 hover:underline inline-flex items-center gap-1">
+                Masuk Disini
+                <ArrowRight className="w-3 h-3" />
               </Link>
             </p>
           </div>
@@ -222,53 +239,52 @@ export function Register() {
       </div>
 
       {/* Right side - Dynamic Image Carousel */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-green-900">
         {/* Background Images */}
         {heroImages.map((image, index) => (
           <div
             key={index}
-            className={`absolute inset-0 transition-opacity duration-1000 ${index === currentImage ? 'opacity-100' : 'opacity-0'
-              }`}
+            className={`absolute inset-0 transition-opacity duration-1000 ${index === currentImage ? 'opacity-100 ease-out' : 'opacity-0'}`}
           >
-            <div className="absolute inset-0 bg-gradient-to-bl from-emerald-900/80 via-green-800/70 to-green-700/60 z-10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-green-950/80 via-green-900/40 to-transparent z-10" />
             <img
               src={image.url}
               alt={image.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transform scale-105"
             />
           </div>
         ))}
 
         {/* Content Overlay */}
-        <div className="relative z-20 flex flex-col justify-between p-12 text-white h-full">
+        <div className="relative z-20 flex flex-col justify-between p-10 xl:p-16 text-white h-full w-full">
           {/* Top - Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-              <Sprout className="w-7 h-7" />
+            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/10">
+              <Sprout className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold">PanenKu</span>
+            <span className="text-xl font-bold tracking-tight">PanenKu</span>
           </div>
 
           {/* Center - Benefits */}
           <div className="space-y-6">
             <div className="space-y-3">
-              <h1 className="text-4xl font-bold leading-tight">
+              <h1 className="text-4xl xl:text-5xl font-extrabold leading-tight tracking-tight">
                 {heroImages[currentImage].title}
               </h1>
-              <p className="text-xl text-white/80">
+              <p className="text-lg text-green-50 font-light max-w-md leading-relaxed">
                 {heroImages[currentImage].subtitle}
               </p>
             </div>
 
             {/* Benefit List */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 space-y-4">
-              <p className="text-sm text-white/70 uppercase tracking-wider">Keuntungan Member</p>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 space-y-4 border border-white/10 shadow-2xl shadow-green-900/20">
+              <p className="text-xs text-green-200 font-bold uppercase tracking-widest mb-2">Member Benefits</p>
               {benefits.map((benefit, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Check className="w-4 h-4 text-green-900" />
+                <div key={index} className="flex items-center gap-4 group">
+                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg group-hover:bg-green-400 transition-colors">
+                    <Check className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-white/90">{benefit}</span>
+                  <span className="text-lg font-medium text-white/90">{benefit}</span>
                 </div>
               ))}
             </div>
@@ -280,10 +296,11 @@ export function Register() {
               <button
                 key={index}
                 onClick={() => setCurrentImage(index)}
-                className={`h-1.5 rounded-full transition-all duration-300 ${index === currentImage
-                    ? 'w-8 bg-white'
-                    : 'w-4 bg-white/40 hover:bg-white/60'
+                className={`h-1.5 rounded-full transition-all duration-500 ease-in-out ${index === currentImage
+                  ? 'w-12 bg-white'
+                  : 'w-2 bg-white/30 hover:bg-white/50'
                   }`}
+                aria-label={`Go to slide ${index + 1}`}
               />
             ))}
           </div>
