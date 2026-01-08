@@ -254,7 +254,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
                                         <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400">
                                             <span>Secure Payment by</span>
                                             <img
-                                                src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Logo_midtrans.png/1200px-Logo_midtrans.png"
+                                                src="/midtrans-logo.png"
                                                 alt="Midtrans"
                                                 className="h-4 object-contain opacity-60 grayscale hover:grayscale-0 transition-all"
                                             />
