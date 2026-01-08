@@ -10,7 +10,7 @@ export function HeroSection() {
     };
 
     return (
-        <div className="relative overflow-hidden bg-white">
+        <div className="relative overflow-hidden bg-white pt-16">
             {/* Background decoration */}
             <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-white to-emerald-50" />
             <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-green-100/50 to-transparent" />
@@ -83,7 +83,9 @@ export function HeroSection() {
                                 alt="Fresh vegetables"
                                 className="w-full h-[400px] object-cover rounded-2xl"
                             />
-                            <div className="absolute -bottom-4 -left-4 bg-white rounded-2xl p-4 shadow-xl">
+
+                            {/* Floating Card - Products (bounce animation) */}
+                            <div className="absolute -bottom-4 -left-4 bg-white rounded-2xl p-4 shadow-xl animate-bounce-slow">
                                 <div className="flex items-center gap-3">
                                     <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                                         <span className="text-2xl">🥬</span>
@@ -94,7 +96,9 @@ export function HeroSection() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="absolute -top-4 -right-4 bg-white rounded-2xl p-4 shadow-xl">
+
+                            {/* Floating Card - Farmers (bounce animation with delay) */}
+                            <div className="absolute -top-4 -right-4 bg-white rounded-2xl p-4 shadow-xl animate-bounce-slow-delayed">
                                 <div className="flex items-center gap-3">
                                     <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
                                         <span className="text-2xl">👨‍🌾</span>
@@ -109,6 +113,28 @@ export function HeroSection() {
                     </div>
                 </div>
             </div>
+
+            {/* Custom CSS for animations */}
+            <style jsx>{`
+                @keyframes bounce-slow {
+                    0%, 100% {
+                        transform: translateY(0);
+                    }
+                    50% {
+                        transform: translateY(-10px);
+                    }
+                }
+                
+                :global(.animate-bounce-slow) {
+                    animation: bounce-slow 3s ease-in-out infinite;
+                }
+                
+                :global(.animate-bounce-slow-delayed) {
+                    animation: bounce-slow 3s ease-in-out infinite;
+                    animation-delay: 1.5s;
+                }
+            `}</style>
         </div>
     );
 }
+
