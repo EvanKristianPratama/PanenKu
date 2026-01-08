@@ -25,6 +25,8 @@ interface Order {
     items: OrderItem[];
     totalAmount: number;
     status: string;
+    paymentStatus: string;
+    paymentProof?: string;
     createdAt: string;
 }
 
@@ -40,6 +42,7 @@ export default function AdminOrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
+    const [expandedProof, setExpandedProof] = useState<string | null>(null);
 
     useEffect(() => {
         fetchOrders();
@@ -66,13 +69,32 @@ export default function AdminOrdersPage() {
             });
 
             if (res.ok) {
-                toast.success('Status berhasil diperbarui');
+                toast.success('Status pesanan berhasil diperbarui');
                 fetchOrders();
             } else {
                 throw new Error('Failed to update');
             }
         } catch (error) {
             toast.error('Gagal memperbarui status');
+        }
+    };
+
+    const updatePaymentStatus = async (orderId: string, paymentStatus: string) => {
+        try {
+            const res = await fetch(`/api/admin/orders/${orderId}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paymentStatus }),
+            });
+
+            if (res.ok) {
+                toast.success('Status pembayaran berhasil diperbarui');
+                fetchOrders();
+            } else {
+                throw new Error('Failed to update');
+            }
+        } catch (error) {
+            toast.error('Gagal memperbarui pembayaran');
         }
     };
 
@@ -150,7 +172,7 @@ export default function AdminOrdersPage() {
                         const StatusIcon = statusInfo.icon;
 
                         return (
-                            <Card key={order._id} className="border-0 shadow-sm">
+                            <Card key={order._id} className="border-0 shadow-sm overflow-hidden">
                                 <CardContent className="p-0">
                                     {/* Header */}
                                     <div className="bg-gray-50 p-4 flex flex-wrap items-center justify-between gap-4">
@@ -164,10 +186,20 @@ export default function AdminOrdersPage() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <div className="flex items-center gap-1 text-sm text-gray-500">
-                                                <Calendar className="w-3 h-3" />
-                                                {new Date(order.createdAt).toLocaleDateString('id-ID')}
-                                            </div>
+                                            {order.paymentStatus === 'paid' ? (
+                                                <Badge className="bg-green-100 text-green-700 hover:bg-green-200">
+                                                    Lunas
+                                                </Badge>
+                                            ) : order.paymentStatus === 'pending_verification' ? (
+                                                <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-200">
+                                                    Cek Pembayaran
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="outline" className="text-gray-500">
+                                                    Belum Bayar
+                                                </Badge>
+                                            )}
+
                                             <Badge className={`${statusInfo.color} gap-1`}>
                                                 <StatusIcon className="w-3 h-3" />
                                                 {statusInfo.label}
@@ -176,8 +208,8 @@ export default function AdminOrdersPage() {
                                     </div>
 
                                     {/* Items */}
-                                    <div className="p-4 grid md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
+                                    <div className="p-4 grid md:grid-cols-2 gap-6">
+                                        <div className="space-y-4">
                                             {order.items.map((item, idx) => (
                                                 <div key={idx} className="flex items-center gap-3">
                                                     <img
@@ -193,29 +225,85 @@ export default function AdminOrdersPage() {
                                                     </div>
                                                 </div>
                                             ))}
+
+                                            {/* Payment Verification Section */}
+                                            {order.paymentStatus === 'pending_verification' && order.paymentProof && (
+                                                <div className="mt-4 p-4 bg-orange-50 rounded-xl border border-orange-100">
+                                                    <p className="font-semibold text-orange-800 mb-2">Verifikasi Pembayaran</p>
+                                                    <div className="flex gap-4 items-start">
+                                                        <div className="relative group">
+                                                            <img
+                                                                src={order.paymentProof}
+                                                                alt="Bukti Bayar"
+                                                                className="w-24 h-24 object-cover rounded-lg cursor-pointer border-2 border-orange-200 hover:border-orange-400"
+                                                                onClick={() => setExpandedProof(expandedProof === order._id ? null : order._id)}
+                                                            />
+                                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center text-white text-xs cursor-pointer" onClick={() => setExpandedProof(expandedProof === order._id ? null : order._id)}>
+                                                                {expandedProof === order._id ? 'Tutup' : 'Lihat'}
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <Button
+                                                                size="sm"
+                                                                className="w-full bg-green-600 hover:bg-green-700"
+                                                                onClick={() => updatePaymentStatus(order._id, 'paid')}
+                                                            >
+                                                                Terima
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                                                onClick={() => updatePaymentStatus(order._id, 'rejected')}
+                                                            >
+                                                                Tolak
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+
+                                                    {expandedProof === order._id && (
+                                                        <div className="mt-4">
+                                                            <img
+                                                                src={order.paymentProof}
+                                                                alt="Bukti Bayar Full"
+                                                                className="w-full rounded-lg shadow-sm"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="flex items-end justify-between md:flex-col md:items-end">
+
+                                        <div className="flex flex-col justify-between items-end">
                                             <div className="text-right mb-4">
-                                                <p className="text-sm text-gray-500">Total</p>
+                                                <p className="text-sm text-gray-500">Total Pesanan</p>
                                                 <p className="text-xl font-bold text-green-600">
                                                     Rp {order.totalAmount.toLocaleString('id-ID')}
                                                 </p>
+                                                <p className="text-xs text-gray-400 mt-1">
+                                                    {new Date(order.createdAt).toLocaleString('id-ID')}
+                                                </p>
                                             </div>
-                                            <Select
-                                                value={order.status}
-                                                onValueChange={(value) => updateStatus(order._id, value)}
-                                            >
-                                                <SelectTrigger className="w-40">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="pending">Menunggu</SelectItem>
-                                                    <SelectItem value="processing">Diproses</SelectItem>
-                                                    <SelectItem value="shipped">Dikirim</SelectItem>
-                                                    <SelectItem value="delivered">Selesai</SelectItem>
-                                                    <SelectItem value="cancelled">Dibatalkan</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+
+                                            <div className="w-full md:w-auto">
+                                                <p className="text-xs text-gray-500 mb-1.5 font-medium">Update Status Pesanan</p>
+                                                <Select
+                                                    value={order.status}
+                                                    onValueChange={(value) => updateStatus(order._id, value)}
+                                                >
+                                                    <SelectTrigger className="w-full md:w-48">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="pending">Menunggu</SelectItem>
+                                                        <SelectItem value="processing">Diproses</SelectItem>
+                                                        <SelectItem value="shipped">Dikirim</SelectItem>
+                                                        <SelectItem value="delivered">Selesai</SelectItem>
+                                                        <SelectItem value="cancelled">Dibatalkan</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
                                         </div>
                                     </div>
                                 </CardContent>

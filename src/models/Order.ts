@@ -20,6 +20,8 @@ export interface IOrder extends Document {
     notes: string;
     createdAt: Date;
     updatedAt: Date;
+    paymentStatus: 'unpaid' | 'pending_verification' | 'paid' | 'rejected';
+    paymentProof: string;
 }
 
 const OrderItemSchema = new Schema<IOrderItem>(
@@ -48,6 +50,12 @@ const OrderSchema = new Schema<IOrder>(
         },
         shippingAddress: { type: String, default: '' },
         notes: { type: String, default: '' },
+        paymentStatus: {
+            type: String,
+            enum: ['unpaid', 'pending_verification', 'paid', 'rejected'],
+            default: 'unpaid'
+        },
+        paymentProof: { type: String, default: '' }
     },
     { timestamps: true }
 );

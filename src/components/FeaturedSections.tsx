@@ -239,7 +239,7 @@ export function FeaturedSections({ products, userName }: FeaturedSectionsProps) 
                                     {/* Image Title */}
                                     <div className="absolute bottom-4 left-4">
                                         <p className="text-white font-medium text-lg">
-                                            heroImages[currentImage]
+                                            heroImages
                                         </p>
                                     </div>
                                 </div>

@@ -27,6 +27,7 @@ interface Order {
     items: OrderItem[];
     totalAmount: number;
     status: string;
+    paymentStatus: string;
     createdAt: string;
 }
 
@@ -126,10 +127,30 @@ function OrdersList() {
                                                 })}
                                             </p>
                                         </div>
-                                        <Badge className={`${statusInfo.color} gap-1`}>
-                                            <StatusIcon className="w-3 h-3" />
-                                            {statusInfo.label}
-                                        </Badge>
+                                        <div className="flex items-center gap-2">
+                                            {order.paymentStatus === 'paid' ? (
+                                                <Badge className="bg-green-100 text-green-700 hover:bg-green-200">
+                                                    Lunas
+                                                </Badge>
+                                            ) : order.paymentStatus === 'pending_verification' ? (
+                                                <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-200">
+                                                    Cek Pembayaran
+                                                </Badge>
+                                            ) : order.paymentStatus === 'rejected' ? (
+                                                <Badge variant="destructive">
+                                                    Pembayaran Ditolak
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="outline" className="text-gray-500">
+                                                    Belum Bayar
+                                                </Badge>
+                                            )}
+
+                                            <Badge className={`${statusInfo.color} gap-1`}>
+                                                <StatusIcon className="w-3 h-3" />
+                                                {statusInfo.label}
+                                            </Badge>
+                                        </div>
                                     </div>
 
                                     {/* Order Items */}
@@ -164,6 +185,19 @@ function OrdersList() {
                                                 Rp {order.totalAmount.toLocaleString('id-ID')}
                                             </p>
                                         </div>
+
+                                        {(order.paymentStatus === 'unpaid' || order.paymentStatus === 'rejected') && order.status !== 'cancelled' && (
+                                            <Link href={`/payment/${order._id}`}>
+                                                <Button className="bg-green-600 hover:bg-green-700">
+                                                    Bayar Sekarang
+                                                </Button>
+                                            </Link>
+                                        )}
+                                        {order.paymentStatus === 'pending_verification' && (
+                                            <Button variant="outline" disabled className="opacity-75 cursor-not-allowed">
+                                                Menunggu Verifikasi
+                                            </Button>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
