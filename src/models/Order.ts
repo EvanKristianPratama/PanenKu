@@ -22,6 +22,8 @@ export interface IOrder extends Document {
     updatedAt: Date;
     paymentStatus: 'unpaid' | 'pending_verification' | 'paid' | 'rejected';
     paymentProof: string;
+    snap_token?: string;
+    snap_redirect_url?: string;
 }
 
 const OrderItemSchema = new Schema<IOrderItem>(
@@ -55,7 +57,9 @@ const OrderSchema = new Schema<IOrder>(
             enum: ['unpaid', 'pending_verification', 'paid', 'rejected'],
             default: 'unpaid'
         },
-        paymentProof: { type: String, default: '' }
+        paymentProof: { type: String, default: '' },
+        snap_token: { type: String },
+        snap_redirect_url: { type: String }
     },
     { timestamps: true }
 );

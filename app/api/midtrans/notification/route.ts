@@ -62,7 +62,13 @@ export async function POST(request: Request) {
 
         if (newStatus !== order.paymentStatus) {
             order.paymentStatus = newStatus;
-            order.paymentProof = 'Midtrans Automatic Verification';
+            order.paymentProof = `Midtrans: ${transactionStatus}`;
+
+            // Auto-update order status to 'processing' if paid
+            if (newStatus === 'paid') {
+                order.status = 'processing';
+            }
+
             await order.save();
         }
 

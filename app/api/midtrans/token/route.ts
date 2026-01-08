@@ -15,6 +15,20 @@ export async function POST(request: Request) {
 
         const { orderId, grossAmount } = await request.json();
 
+        await connectDB();
+        const order = await Order.findOne({ orderNumber: orderId });
+
+        if (!order) {
+            return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+        }
+
+        // Reuse existing token if available (Fixes "Order ID Taken" error)
+        if (order.snap_token) {
+            // Check expiry? For now assuming 24h validity is enough.
+            console.log(`Reusing existing Snap Token for ${orderId}`);
+            return NextResponse.json({ token: order.snap_token, redirect_url: order.snap_redirect_url });
+        }
+
         // Create Snap instance
         let snap = new midtransClient.Snap({
             isProduction: false,
@@ -29,6 +43,9 @@ export async function POST(request: Request) {
 
         const parameter = {
             transaction_details: {
+                // Determine if we need to append suffix. 
+                // Since we reuse tokens, we try sticking to original ID first.
+                // If this fails (e.g. token expired but not in DB), we might need retry logic in future.
                 order_id: orderId,
                 gross_amount: grossAmount
             },
@@ -49,6 +66,12 @@ export async function POST(request: Request) {
         };
 
         const transaction = await snap.createTransaction(parameter);
+
+        // Save unique token for future reuse
+        order.snap_token = transaction.token;
+        order.snap_redirect_url = transaction.redirect_url;
+        await order.save();
+
         return NextResponse.json({ token: transaction.token, redirect_url: transaction.redirect_url });
 
     } catch (error: any) {
