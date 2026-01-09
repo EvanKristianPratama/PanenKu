@@ -1,4 +1,4 @@
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import {
     collection,
     addDoc,
@@ -11,9 +11,19 @@ import {
     updateDoc,
     serverTimestamp,
     getDocs,
-    limit
+    limit,
+    setDoc
 } from 'firebase/firestore';
+import { signInAnonymously } from 'firebase/auth';
 import { ChatMessage, ChatRoom } from '@/types';
+
+// Helper to ensure auth
+const ensureAuth = async () => {
+    if (!auth.currentUser) {
+        await signInAnonymously(auth);
+    }
+    return auth.currentUser;
+};
 
 export const chatService = {
     // Create or get existing chat room
@@ -23,6 +33,8 @@ export const chatService = {
         type: 'support' | 'product_inquiry',
         metadata?: any
     ) => {
+        await ensureAuth();
+
         if (!participants || participants.some(p => !p)) {
             throw new Error("Invalid participants: " + JSON.stringify(participants));
         }
@@ -72,6 +84,7 @@ export const chatService = {
 
     // Send a message
     sendMessage: async (roomId: string, senderId: string, senderName: string, content: string) => {
+        await ensureAuth();
         const messageRef = await addDoc(collection(db, `rooms/${roomId}/messages`), {
             senderId,
             senderName,
@@ -91,11 +104,11 @@ export const chatService = {
         return messageRef.id;
     },
 
-    // Subscribe to messages in a room (newest first)
+    // Subscribe to messages in a room
     subscribeToMessages: (roomId: string, callback: (messages: ChatMessage[]) => void) => {
         const q = query(
             collection(db, `rooms/${roomId}/messages`),
-            orderBy('createdAt', 'desc')
+            orderBy('createdAt', 'asc')
         );
 
         return onSnapshot(q, (snapshot) => {
@@ -122,6 +135,31 @@ export const chatService = {
                 ...doc.data()
             } as ChatRoom));
             callback(rooms);
+        });
+    },
+
+    // User Presence / Status
+    updateUserStatus: async (userId: string, isOnline: boolean) => {
+        if (!userId) return;
+        // Don't await ensureAuth here to prevent loops/blocking, just check
+        if (!auth.currentUser) return;
+
+        const statusRef = doc(db, 'status', userId);
+        await setDoc(statusRef, {
+            isOnline,
+            lastSeen: serverTimestamp(),
+            // We can add more info like currentRoomId if needed later
+        }, { merge: true });
+    },
+
+    listenToUserStatus: (userId: string, callback: (status: { isOnline: boolean, lastSeen: any }) => void) => {
+        if (!userId) return () => { };
+        return onSnapshot(doc(db, 'status', userId), (doc) => {
+            if (doc.exists()) {
+                callback(doc.data() as any);
+            } else {
+                callback({ isOnline: false, lastSeen: null });
+            }
         });
     }
 };

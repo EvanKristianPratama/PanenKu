@@ -66,7 +66,7 @@ export function Navbar() {
       setActiveChatRoom(room);
     } catch (error) {
       console.error(error);
-      showAlert.error('Gagal', 'Tidak dapat menghubungi support saat ini');
+      showAlert.error('Gagal', `Error: ${(error as any).message}`);
     }
   };
 

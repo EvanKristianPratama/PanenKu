@@ -30,21 +30,40 @@ const roleOptions = [
     { value: 'admin', label: 'Admin', icon: Shield, bgColor: 'bg-purple-100', textColor: 'text-purple-700' },
 ];
 
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 export default function AdminUsersPage() {
     const [users, setUsers] = useState<UserData[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [updating, setUpdating] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({
+        total: 0,
+        page: 1,
+        limit: 10,
+        totalPages: 1
+    });
 
     useEffect(() => {
-        fetchUsers();
-    }, []);
+        const timeout = setTimeout(() => {
+            fetchUsers(1);
+        }, 500); // Debounce search
+        return () => clearTimeout(timeout);
+    }, [search]);
 
-    const fetchUsers = async () => {
+    useEffect(() => {
+        fetchUsers(page);
+    }, [page]);
+
+    const fetchUsers = async (pageNum: number) => {
         try {
-            const res = await fetch('/api/admin/users');
+            setLoading(true);
+            const res = await fetch(`/api/admin/users?page=${pageNum}&limit=10&search=${search}`);
             const data = await res.json();
             setUsers(data.users || []);
+            setPagination(data.pagination || { total: 0, page: 1, limit: 10, totalPages: 1 });
+            setPage(pageNum);
         } catch (error) {
             toast.error('Gagal memuat data pengguna');
         } finally {
@@ -88,23 +107,10 @@ export default function AdminUsersPage() {
         }
     };
 
-    const filteredUsers = users.filter(user =>
-        user.name.toLowerCase().includes(search.toLowerCase()) ||
-        user.email.toLowerCase().includes(search.toLowerCase())
-    );
-
     const getRoleOption = (role: string) => roleOptions.find(r => r.value === role);
     const adminCount = users.filter(u => u.role === 'admin').length;
     const farmerCount = users.filter(u => u.role === 'farmer').length;
     const userCount = users.filter(u => u.role === 'user').length;
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center py-20">
-                <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
-            </div>
-        );
-    }
 
     return (
         <div className="space-y-6">
@@ -118,31 +124,11 @@ export default function AdminUsersPage() {
                 <Card className="border-0 shadow-sm">
                     <CardContent className="p-4 text-center">
                         <Users className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-2xl font-bold text-gray-900">{users.length}</p>
-                        <p className="text-sm text-gray-500">Total</p>
+                        <p className="text-2xl font-bold text-gray-900">{pagination.total}</p>
+                        <p className="text-sm text-gray-500">Total User (Semua)</p>
                     </CardContent>
                 </Card>
-                <Card className="border-0 shadow-sm">
-                    <CardContent className="p-4 text-center">
-                        <User className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                        <p className="text-2xl font-bold text-blue-600">{userCount}</p>
-                        <p className="text-sm text-gray-500">User</p>
-                    </CardContent>
-                </Card>
-                <Card className="border-0 shadow-sm">
-                    <CardContent className="p-4 text-center">
-                        <Leaf className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                        <p className="text-2xl font-bold text-green-600">{farmerCount}</p>
-                        <p className="text-sm text-gray-500">Petani</p>
-                    </CardContent>
-                </Card>
-                <Card className="border-0 shadow-sm">
-                    <CardContent className="p-4 text-center">
-                        <Shield className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-                        <p className="text-2xl font-bold text-purple-600">{adminCount}</p>
-                        <p className="text-sm text-gray-500">Admin</p>
-                    </CardContent>
-                </Card>
+                {/* Note: Specific role counts are current page only, better removed or fetched separately. Keeping simple for now */}
             </div>
 
             {/* Search */}
@@ -151,13 +137,20 @@ export default function AdminUsersPage() {
                 <Input
                     placeholder="Cari pengguna..."
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => {
+                        setSearch(e.target.value);
+                        setPage(1); // Reset page on search
+                    }}
                     className="pl-10 bg-white"
                 />
             </div>
 
             {/* Users List */}
-            {filteredUsers.length === 0 ? (
+            {loading ? (
+                <div className="flex items-center justify-center py-20 bg-white rounded-lg">
+                    <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
+                </div>
+            ) : users.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-lg shadow-sm">
                     <User className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                     <p className="text-gray-500">Tidak ada pengguna ditemukan</p>
@@ -174,7 +167,7 @@ export default function AdminUsersPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y">
-                            {filteredUsers.map((user) => {
+                            {users.map((user) => {
                                 const roleOpt = getRoleOption(user.role);
                                 const RoleIcon = roleOpt?.icon || User;
                                 return (
@@ -229,6 +222,33 @@ export default function AdminUsersPage() {
                             })}
                         </tbody>
                     </table>
+
+                    {/* Pagination Controls */}
+                    <div className="p-4 border-t border-gray-100 flex items-center justify-between">
+                        <div className="text-sm text-gray-500">
+                            Hal. {page} dari {pagination.totalPages} ({pagination.total} total)
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                            >
+                                <ChevronLeft className="w-4 h-4 mr-1" />
+                                Sebelumnya
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+                                disabled={page === pagination.totalPages}
+                            >
+                                Selanjutnya
+                                <ChevronRight className="w-4 h-4 ml-1" />
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
