@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { MessageCircle, X } from 'lucide-react';
-import { chatService } from '@/services/chatService';
+import { useChat } from '@/hooks/useChat';
 import { ChatBox } from './chat/ChatBox';
 import { ChatRoom } from '@/types';
 import { showAlert } from '@/lib/sweetalert';
@@ -26,11 +26,12 @@ export function ProductDetail({ product }: ProductDetailProps) {
   const { addToCart } = useCart();
   const { data: session } = useSession();
   const router = useRouter();
+  const { createProductChat, isAuthenticated } = useChat();
   const [activeChatRoom, setActiveChatRoom] = useState<ChatRoom | null>(null);
   const [isChatLoading, setIsChatLoading] = useState(false);
 
   const handleChatFarmer = async () => {
-    if (!session?.user) {
+    if (!isAuthenticated) {
       showAlert.error('Login Diperlukan', 'Silakan login untuk chat dengan petani');
       router.push('/login');
       return;
@@ -41,35 +42,23 @@ export function ProductDetail({ product }: ProductDetailProps) {
       return;
     }
 
-    // Don't chat with self
-    if (String(product.farmerId) === String((session.user as any).id)) {
-      showAlert.error('Info', 'Anda tidak dapat mengirim pesan ke diri sendiri');
-      return;
-    }
-
     setIsChatLoading(true);
     try {
-      const userId = (session.user as any).id;
-      const participants = [String(userId), String(product.farmerId)];
-      const participantNames = {
-        [String(userId)]: session.user.name || 'User',
-        [String(product.farmerId)]: product.farmer
-      };
-
-      const room = await chatService.createRoom(
-        participants,
-        participantNames,
-        'product_inquiry',
-        {
-          productId: String(product.id),
-          productName: product.name
-        }
+      const room = await createProductChat(
+        product.farmerId,
+        product.farmer,
+        String(product.id),
+        product.name
       );
 
-      setActiveChatRoom(room);
+      if (room) {
+        setActiveChatRoom(room);
+      } else {
+        showAlert.error('Info', 'Tidak dapat memulai chat');
+      }
     } catch (error) {
       console.error('Chat error:', error);
-      showAlert.error('Gagal Memulai Chat', 'Terjadi kesalahan saat menghubungi server');
+      showAlert.error('Gagal Memulai Chat', 'Terjadi kesalahan');
     } finally {
       setIsChatLoading(false);
     }
