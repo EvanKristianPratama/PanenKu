@@ -6,6 +6,7 @@ import { useChatRooms } from '@/hooks/useChatRooms';
 import { useChat } from '@/hooks/useChat';
 import { ChatBox } from './ChatBox';
 import { MessageCircle, Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 
 /**
@@ -38,8 +39,17 @@ export function ChatList() {
                 </div>
                 <div className="flex-1 overflow-y-auto">
                     {loading ? (
-                        <div className="p-4 flex justify-center">
-                            <Loader2 className="w-6 h-6 animate-spin text-green-600" />
+                        <div className="p-4 space-y-4">
+                            {[1, 2, 3, 4].map(i => (
+                                <div key={i} className="flex flex-col gap-2">
+                                    <div className="flex justify-between">
+                                        <Skeleton className="h-4 w-32" />
+                                        <Skeleton className="h-3 w-10" />
+                                    </div>
+                                    <Skeleton className="h-3 w-48" />
+                                    <Skeleton className="h-5 w-20 rounded" />
+                                </div>
+                            ))}
                         </div>
                     ) : rooms.length === 0 ? (
                         <div className="p-4 text-center text-gray-500 text-sm">

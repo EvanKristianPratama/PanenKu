@@ -10,6 +10,7 @@ import { useChatMessages } from '@/hooks/useChatMessages';
 import { usePresence } from '@/hooks/usePresence';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
+import { ChatBoxSkeleton } from '../skeletons/ChatBoxSkeleton';
 
 interface ChatBoxProps {
     room: ChatRoom;
@@ -22,8 +23,9 @@ interface ChatBoxProps {
  * Supports both floating (fixed) and embedded (relative) modes
  */
 export function ChatBox({ room, onClose, embedded = false }: ChatBoxProps) {
+    // Hooks must be unconditional. Loading check is done after hooks.
     const { userId, sendMessage } = useChat();
-    const { messages } = useChatMessages(room.id);
+    const { messages, loading } = useChatMessages(room.id);
     const [newMessage, setNewMessage] = useState('');
     const [isMinimized, setIsMinimized] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -35,8 +37,11 @@ export function ChatBox({ room, onClose, embedded = false }: ChatBoxProps) {
 
     // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        if (scrollRef.current && messages.length > 0) {
+            scrollRef.current.scrollTo({
+                top: scrollRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
         }
     }, [messages]);
 
@@ -47,6 +52,10 @@ export function ChatBox({ room, onClose, embedded = false }: ChatBoxProps) {
         const success = await sendMessage(room.id, newMessage);
         if (success) setNewMessage('');
     };
+
+    if (loading) {
+        return <ChatBoxSkeleton embedded={embedded} />;
+    }
 
     const getStatusText = () => {
         if (isOnline) return 'Online';

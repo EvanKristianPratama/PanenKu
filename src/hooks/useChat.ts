@@ -4,6 +4,15 @@ import { useSession } from 'next-auth/react';
 import { chatService } from '@/services/chatService';
 import { ChatRoom } from '@/types';
 
+// Extended session user type locally if needed or rely on next-auth module augmentation
+interface ExtendedUser {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    role?: string;
+}
+
 /**
  * Hook for chat operations (creating rooms, sending messages)
  * Single Responsibility: Manage chat actions
@@ -85,6 +94,7 @@ export function useChat() {
 
         try {
             await chatService.sendMessage(roomId, userId, userName, content);
+
             return true;
         } catch (error) {
             console.error('Failed to send message:', error);
