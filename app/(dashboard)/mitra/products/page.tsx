@@ -7,10 +7,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Package, Minus, X, Image, ExternalLink, Save } from 'lucide-react';
+import { Plus, Package, Minus, X, Image, ExternalLink, Save, Calendar, Leaf, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 const CATEGORIES = ['Sayuran', 'Buah', 'Beras', 'Bumbu', 'Lainnya'];
+const HARVEST_STATUS = [
+    { value: 'ready', label: 'Siap Jual', color: 'bg-green-100 text-green-700' },
+    { value: 'growing', label: 'Sedang Tumbuh', color: 'bg-yellow-100 text-yellow-700' },
+    { value: 'pre-order', label: 'Pre-Order', color: 'bg-blue-100 text-blue-700' },
+];
 
 interface Product {
     _id: string;
@@ -22,6 +27,9 @@ interface Product {
     stock: number;
     description: string;
     location: string;
+    harvestDate?: string;
+    harvestStatus: 'ready' | 'growing' | 'pre-order';
+    isSubscribable: boolean;
 }
 
 export default function MitraProducts() {
@@ -39,7 +47,10 @@ export default function MitraProducts() {
         stock: '',
         location: '',
         description: '',
-        image: ''
+        image: '',
+        harvestDate: '',
+        harvestStatus: 'ready' as 'ready' | 'growing' | 'pre-order',
+        isSubscribable: false
     });
 
     useEffect(() => {
@@ -60,6 +71,14 @@ export default function MitraProducts() {
         }
     };
 
+    const resetForm = () => {
+        setForm({
+            name: '', price: '', unit: 'kg', category: 'Sayuran', stock: '',
+            location: '', description: '', image: '', harvestDate: '',
+            harvestStatus: 'ready', isSubscribable: false
+        });
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
@@ -75,7 +94,7 @@ export default function MitraProducts() {
             if (res.ok) {
                 toast.success(data.message);
                 setShowModal(false);
-                setForm({ name: '', price: '', unit: 'kg', category: 'Sayuran', stock: '', location: '', description: '', image: '' });
+                resetForm();
                 fetchProducts();
             } else {
                 toast.error(data.error);
@@ -106,6 +125,11 @@ export default function MitraProducts() {
         } catch (error) {
             toast.error('Gagal update stok');
         }
+    };
+
+    const getDaysUntilHarvest = (harvestDate: string) => {
+        const days = Math.ceil((new Date(harvestDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        return days > 0 ? days : 0;
     };
 
     if (status === 'loading' || loading) {
@@ -151,61 +175,84 @@ export default function MitraProducts() {
                 </Card>
             ) : (
                 <div className="grid gap-4">
-                    {products.map((product) => (
-                        <Card key={product._id} className="border-0 shadow-sm">
-                            <CardContent className="p-4">
-                                <div className="flex gap-4">
-                                    <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                        <img
-                                            src={product.image}
-                                            alt={product.name}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-start justify-between gap-2">
-                                            <div>
-                                                <h3 className="font-semibold text-gray-900 truncate">{product.name}</h3>
-                                                <p className="text-sm text-gray-500">{product.category}</p>
-                                            </div>
-                                            <span className="text-green-600 font-bold whitespace-nowrap">
-                                                Rp {product.price.toLocaleString()}
-                                            </span>
-                                        </div>
+                    {products.map((product) => {
+                        const statusInfo = HARVEST_STATUS.find(s => s.value === product.harvestStatus) || HARVEST_STATUS[0];
+                        const daysUntil = product.harvestDate ? getDaysUntilHarvest(product.harvestDate) : 0;
 
-                                        {/* Stock Stepper */}
-                                        <div className="flex items-center justify-between mt-3">
-                                            <span className="text-sm text-gray-500">Stok:</span>
-                                            <div className="flex items-center gap-2">
-                                                <Button
-                                                    size="icon"
-                                                    variant="outline"
-                                                    className="h-8 w-8"
-                                                    onClick={() => updateStock(product._id, product.stock - 1)}
-                                                >
-                                                    <Minus className="w-4 h-4" />
-                                                </Button>
-                                                <span className="w-12 text-center font-bold">{product.stock}</span>
-                                                <Button
-                                                    size="icon"
-                                                    variant="outline"
-                                                    className="h-8 w-8"
-                                                    onClick={() => updateStock(product._id, product.stock + 1)}
-                                                >
-                                                    <Plus className="w-4 h-4" />
-                                                </Button>
-                                                <span className="text-sm text-gray-400">{product.unit}</span>
+                        return (
+                            <Card key={product._id} className="border-0 shadow-sm">
+                                <CardContent className="p-4">
+                                    <div className="flex gap-4">
+                                        <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
+                                            <img
+                                                src={product.image}
+                                                alt={product.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                            {product.isSubscribable && (
+                                                <div className="absolute top-1 left-1 bg-purple-500 text-white p-1 rounded-full">
+                                                    <RefreshCw className="w-3 h-3" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div>
+                                                    <h3 className="font-semibold text-gray-900 truncate">{product.name}</h3>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <span className="text-xs text-gray-500">{product.category}</span>
+                                                        <span className={`text-xs px-2 py-0.5 rounded-full ${statusInfo.color}`}>
+                                                            {statusInfo.label}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <span className="text-green-600 font-bold whitespace-nowrap">
+                                                    Rp {product.price.toLocaleString()}
+                                                </span>
+                                            </div>
+
+                                            {/* Harvest Date Badge */}
+                                            {product.harvestStatus !== 'ready' && product.harvestDate && daysUntil > 0 && (
+                                                <div className="flex items-center gap-1 mt-2 text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded-lg w-fit">
+                                                    <Leaf className="w-3 h-3" />
+                                                    Panen ~{daysUntil} hari lagi
+                                                </div>
+                                            )}
+
+                                            {/* Stock Stepper */}
+                                            <div className="flex items-center justify-between mt-3">
+                                                <span className="text-sm text-gray-500">Stok:</span>
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        size="icon"
+                                                        variant="outline"
+                                                        className="h-8 w-8"
+                                                        onClick={() => updateStock(product._id, product.stock - 1)}
+                                                    >
+                                                        <Minus className="w-4 h-4" />
+                                                    </Button>
+                                                    <span className="w-12 text-center font-bold">{product.stock}</span>
+                                                    <Button
+                                                        size="icon"
+                                                        variant="outline"
+                                                        className="h-8 w-8"
+                                                        onClick={() => updateStock(product._id, product.stock + 1)}
+                                                    >
+                                                        <Plus className="w-4 h-4" />
+                                                    </Button>
+                                                    <span className="text-sm text-gray-400">{product.unit}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                                </CardContent>
+                            </Card>
+                        );
+                    })}
                 </div>
             )}
 
-            {/* Add Product Modal - Admin Style */}
+            {/* Add Product Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -216,7 +263,7 @@ export default function MitraProducts() {
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                        <form onSubmit={handleSubmit} className="p-6 space-y-5">
                             {/* Nama Produk */}
                             <div className="space-y-2">
                                 <Label htmlFor="name">Nama Produk</Label>
@@ -283,7 +330,58 @@ export default function MitraProducts() {
                                 </div>
                             </div>
 
-                            {/* Image URL - Like Admin */}
+                            {/* Harvest Status & Date */}
+                            <div className="p-4 bg-green-50 rounded-lg space-y-4">
+                                <div className="flex items-center gap-2 text-green-700 font-medium">
+                                    <Calendar className="w-4 h-4" />
+                                    Informasi Panen
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="harvestStatus">Status</Label>
+                                        <select
+                                            id="harvestStatus"
+                                            value={form.harvestStatus}
+                                            onChange={(e) => setForm({ ...form, harvestStatus: e.target.value as any })}
+                                            className="w-full h-10 px-3 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                                        >
+                                            {HARVEST_STATUS.map(s => (
+                                                <option key={s.value} value={s.value}>{s.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="harvestDate">Tanggal Panen</Label>
+                                        <Input
+                                            id="harvestDate"
+                                            type="date"
+                                            value={form.harvestDate}
+                                            onChange={(e) => setForm({ ...form, harvestDate: e.target.value })}
+                                            min={new Date().toISOString().split('T')[0]}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Subscription Toggle */}
+                            <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                    <RefreshCw className="w-4 h-4 text-purple-600" />
+                                    <div>
+                                        <p className="font-medium text-purple-700">Bisa Langganan</p>
+                                        <p className="text-xs text-purple-500">Pembeli bisa subscribe pembelian rutin</p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setForm({ ...form, isSubscribable: !form.isSubscribable })}
+                                    className={`w-12 h-6 rounded-full transition-colors ${form.isSubscribable ? 'bg-purple-600' : 'bg-gray-300'}`}
+                                >
+                                    <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${form.isSubscribable ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                                </button>
+                            </div>
+
+                            {/* Image URL */}
                             <div className="space-y-2">
                                 <Label htmlFor="image" className="flex items-center gap-2">
                                     <Image className="w-4 h-4" />
@@ -312,7 +410,7 @@ export default function MitraProducts() {
                                         <img
                                             src={form.image}
                                             alt="Preview"
-                                            className="w-full h-48 object-cover"
+                                            className="w-full h-40 object-cover"
                                             onError={(e) => {
                                                 (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Invalid+Image+URL';
                                             }}
@@ -324,7 +422,7 @@ export default function MitraProducts() {
                                 )}
                             </div>
 
-                            {/* Lokasi */}
+                            {/* Lokasi & Deskripsi */}
                             <div className="space-y-2">
                                 <Label htmlFor="location">Lokasi</Label>
                                 <Input
@@ -335,7 +433,6 @@ export default function MitraProducts() {
                                 />
                             </div>
 
-                            {/* Deskripsi */}
                             <div className="space-y-2">
                                 <Label htmlFor="description">Deskripsi</Label>
                                 <textarea
@@ -343,7 +440,7 @@ export default function MitraProducts() {
                                     value={form.description}
                                     onChange={(e) => setForm({ ...form, description: e.target.value })}
                                     placeholder="Deskripsi lengkap produk..."
-                                    rows={3}
+                                    rows={2}
                                     className="w-full px-3 py-2 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500"
                                 />
                             </div>
@@ -369,4 +466,3 @@ export default function MitraProducts() {
         </div>
     );
 }
-

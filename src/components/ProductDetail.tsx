@@ -4,9 +4,8 @@ import { Product } from '../types';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Card, CardContent } from './ui/card';
-import { ArrowLeft, MapPin, User, Package, ShoppingCart, Minus, Plus, Star, Truck } from 'lucide-react';
+import { MapPin, User, Package, ShoppingCart, Minus, Plus, Star, Truck, Leaf, Calendar } from 'lucide-react';
 import { useState } from 'react';
-import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -33,18 +32,41 @@ export function ProductDetail({ product }: ProductDetailProps) {
     setQuantity(1);
   };
 
+  const getDaysUntilHarvest = () => {
+    if (!product.harvestDate) return 0;
+    const days = Math.ceil((new Date(product.harvestDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return days > 0 ? days : 0;
+  };
+
+  const daysUntil = getDaysUntilHarvest();
+  const isGrowing = product.harvestStatus === 'growing' || product.harvestStatus === 'pre-order';
+
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Product Image */}
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl overflow-hidden shadow-lg">
+            <div className="bg-white rounded-2xl overflow-hidden shadow-lg relative">
               <ImageWithFallback
                 src={product.image}
                 alt={product.name}
                 className="w-full aspect-square object-cover"
               />
+              {/* Badges */}
+              <div className="absolute top-4 left-4 flex flex-col gap-2">
+                {isGrowing && daysUntil > 0 && (
+                  <div className="flex items-center gap-1 bg-orange-500 text-white px-3 py-1.5 rounded-full text-sm font-medium shadow-lg">
+                    <Leaf className="w-4 h-4" />
+                    Panen ~{daysUntil} hari
+                  </div>
+                )}
+                {product.isSubscribable && (
+                  <div className="flex items-center gap-1 bg-purple-500 text-white px-3 py-1.5 rounded-full text-sm font-medium shadow-lg">
+                    🔄 Bisa Langganan
+                  </div>
+                )}
+              </div>
             </div>
             {/* Features */}
             <div className="grid grid-cols-3 gap-3">
@@ -83,6 +105,25 @@ export function ProductDetail({ product }: ProductDetailProps) {
               <p className="text-gray-600 mb-6 leading-relaxed">
                 {product.description}
               </p>
+
+              {/* Harvest Info Banner */}
+              {isGrowing && daysUntil > 0 && (
+                <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-orange-800">Estimasi Panen</p>
+                      <p className="text-sm text-orange-600">
+                        {new Date(product.harvestDate!).toLocaleDateString('id-ID', {
+                          day: 'numeric', month: 'long', year: 'numeric'
+                        })} (~{daysUntil} hari lagi)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Quantity Selector */}
               <div className="mb-6">
@@ -126,10 +167,18 @@ export function ProductDetail({ product }: ProductDetailProps) {
               <Button
                 className="w-full h-14 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-lg font-medium shadow-xl shadow-green-500/25 rounded-xl"
                 onClick={handleAddToCart}
+                disabled={product.stock === 0}
               >
                 <ShoppingCart className="w-5 h-5 mr-2" />
-                Tambah ke Keranjang
+                {isGrowing ? 'Pre-Order' : 'Tambah ke Keranjang'}
               </Button>
+
+              {/* Subscribable info hint */}
+              {product.isSubscribable && (
+                <p className="text-center text-sm text-purple-600 mt-3">
+                  ✨ Produk ini bisa dijadikan langganan rutin di halaman checkout
+                </p>
+              )}
             </div>
 
             {/* Farmer Info */}

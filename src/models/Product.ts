@@ -12,6 +12,12 @@ export interface IProduct extends Document {
     farmerId?: Types.ObjectId;
     location: string;
     soldCount: number;
+    // Harvest Date feature
+    harvestDate?: Date;
+    harvestStatus: 'ready' | 'growing' | 'pre-order';
+    preOrderCount: number;
+    // Subscription feature
+    isSubscribable: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -25,12 +31,23 @@ const ProductSchema = new Schema<IProduct>(
         category: { type: String, required: true },
         description: { type: String, required: true },
         stock: { type: Number, required: true, default: 0 },
-        farmer: { type: String, required: true }, // Keeping for display name
-        farmerId: { type: Schema.Types.ObjectId, ref: 'User' }, // Reference to User
+        farmer: { type: String, required: true },
+        farmerId: { type: Schema.Types.ObjectId, ref: 'User' },
         location: { type: String, required: true },
         soldCount: { type: Number, default: 0 },
+        // Harvest Date feature
+        harvestDate: { type: Date },
+        harvestStatus: {
+            type: String,
+            enum: ['ready', 'growing', 'pre-order'],
+            default: 'ready'
+        },
+        preOrderCount: { type: Number, default: 0 },
+        // Subscription feature
+        isSubscribable: { type: Boolean, default: false },
     },
     { timestamps: true }
 );
 
 export const Product: Model<IProduct> = mongoose.models.Product || mongoose.model<IProduct>('Product', ProductSchema);
+

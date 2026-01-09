@@ -3,14 +3,51 @@
 import { Button } from './ui/button';
 import { Sprout, Truck, ShieldCheck, Leaf } from 'lucide-react';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+
+// Data with colors for each type
+const PRODUCT_TYPES = [
+    { text: 'Pertanian', color: 'text-green-600' },
+    { text: 'Peternakan', color: 'text-amber-600' },
+    { text: 'Perikanan', color: 'text-blue-600' },
+    { text: 'Perkebunan', color: 'text-emerald-600' },
+];
+
+const PRODUCER_TYPES = [
+    { text: 'Petani', color: 'text-orange-500' },
+    { text: 'Peternak', color: 'text-rose-500' },
+    { text: 'Nelayan', color: 'text-cyan-500' },
+    { text: 'Pekebun', color: 'text-lime-600' },
+];
 
 export function HeroSection() {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [isVisible, setIsVisible] = useState(true);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            // Fade out
+            setIsVisible(false);
+
+            // After fade out, change text and fade in
+            setTimeout(() => {
+                setCurrentIndex((prev) => (prev + 1) % PRODUCT_TYPES.length);
+                setIsVisible(true);
+            }, 400);
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, []);
+
     const scrollToProducts = () => {
         document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    const currentProduct = PRODUCT_TYPES[currentIndex];
+    const currentProducer = PRODUCER_TYPES[currentIndex];
+
     return (
-        <div className="relative overflow-hidden bg-white pt-15">
+        <div className="relative overflow-hidden bg-white pt-16">
             {/* Background decoration */}
             <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-white to-emerald-50" />
             <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-green-100/50 to-transparent" />
@@ -26,8 +63,29 @@ export function HeroSection() {
 
                         <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight">
                             Belanja Produk
-                            <span className="text-green-600"> Pertanian</span>
-                            <br />Langsung dari Petani
+                            {/* Fixed width container to prevent layout shift */}
+                            <span className="block h-[1.2em] relative overflow-hidden">
+                                <span
+                                    className={`${currentProduct.color} absolute left-0 transition-all duration-500 ease-out ${isVisible
+                                            ? 'opacity-100 translate-y-0'
+                                            : 'opacity-0 -translate-y-6'
+                                        }`}
+                                >
+                                    {currentProduct.text}
+                                </span>
+                            </span>
+                            <span className="text-gray-900">Langsung dari </span>
+                            {/* Fixed width for producer text */}
+                            <span className="inline-block w-[200px] lg:w-[260px] relative overflow-hidden h-[1.2em] align-bottom">
+                                <span
+                                    className={`${currentProducer.color} absolute left-0 transition-all duration-500 ease-out ${isVisible
+                                            ? 'opacity-100 translate-y-0'
+                                            : 'opacity-0 translate-y-6'
+                                        }`}
+                                >
+                                    {currentProducer.text}
+                                </span>
+                            </span>
                         </h1>
 
                         <p className="text-xl text-gray-600 max-w-lg">
@@ -84,8 +142,8 @@ export function HeroSection() {
                                 className="w-full h-[400px] object-cover rounded-2xl"
                             />
 
-                            {/* Floating Card - Products (bounce animation) */}
-                            <div className="absolute -bottom-4 -left-4 bg-white rounded-2xl p-4 shadow-xl animate-bounce-slow">
+                            {/* Floating Card - Products */}
+                            <div className="absolute -bottom-4 -left-4 bg-white rounded-2xl p-4 shadow-xl animate-float">
                                 <div className="flex items-center gap-3">
                                     <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                                         <span className="text-2xl">🥬</span>
@@ -97,8 +155,8 @@ export function HeroSection() {
                                 </div>
                             </div>
 
-                            {/* Floating Card - Farmers (bounce animation with delay) */}
-                            <div className="absolute -top-4 -right-4 bg-white rounded-2xl p-4 shadow-xl animate-bounce-slow-delayed">
+                            {/* Floating Card - Farmers */}
+                            <div className="absolute -top-4 -right-4 bg-white rounded-2xl p-4 shadow-xl animate-float-delayed">
                                 <div className="flex items-center gap-3">
                                     <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
                                         <span className="text-2xl">👨‍🌾</span>
@@ -114,27 +172,22 @@ export function HeroSection() {
                 </div>
             </div>
 
-            {/* Custom CSS for animations */}
+            {/* Smooth floating animation CSS */}
             <style jsx>{`
-                @keyframes bounce-slow {
-                    0%, 100% {
-                        transform: translateY(0);
-                    }
-                    50% {
-                        transform: translateY(-10px);
-                    }
+                @keyframes float {
+                    0%, 100% { transform: translateY(0px); }
+                    50% { transform: translateY(-8px); }
                 }
                 
-                :global(.animate-bounce-slow) {
-                    animation: bounce-slow 3s ease-in-out infinite;
+                :global(.animate-float) {
+                    animation: float 4s ease-in-out infinite;
                 }
                 
-                :global(.animate-bounce-slow-delayed) {
-                    animation: bounce-slow 3s ease-in-out infinite;
-                    animation-delay: 1.5s;
+                :global(.animate-float-delayed) {
+                    animation: float 4s ease-in-out infinite;
+                    animation-delay: 2s;
                 }
             `}</style>
         </div>
     );
 }
-

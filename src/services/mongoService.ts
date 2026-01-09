@@ -25,6 +25,11 @@ export const mongoService = {
             location: p.location,
             soldCount: p.soldCount || 0,
             createdAt: p.createdAt?.toISOString() || new Date().toISOString(),
+            // Harvest & Subscription fields
+            harvestDate: p.harvestDate?.toISOString() || null,
+            harvestStatus: p.harvestStatus || 'ready',
+            preOrderCount: p.preOrderCount || 0,
+            isSubscribable: p.isSubscribable || false,
         }));
     },
 
@@ -43,6 +48,11 @@ export const mongoService = {
             stock: product.stock,
             farmer: product.farmer,
             location: product.location,
+            // Harvest & Subscription fields
+            harvestDate: product.harvestDate?.toISOString() || null,
+            harvestStatus: product.harvestStatus || 'ready',
+            preOrderCount: product.preOrderCount || 0,
+            isSubscribable: product.isSubscribable || false,
         };
     },
 

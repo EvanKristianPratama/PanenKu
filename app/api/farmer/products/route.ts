@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { name, price, unit, image, category, description, stock, location } = body;
+        const { name, price, unit, image, category, description, stock, location, harvestDate, harvestStatus, isSubscribable } = body;
 
         // Validation
         if (!name || !price || !category) {
@@ -68,7 +68,10 @@ export async function POST(req: NextRequest) {
             farmer: farmer.name,
             farmerId: farmer._id,
             location: location || 'Indonesia',
-            soldCount: 0
+            soldCount: 0,
+            harvestDate: harvestDate || null,
+            harvestStatus: harvestStatus || 'ready',
+            isSubscribable: isSubscribable || false
         });
 
         return NextResponse.json({

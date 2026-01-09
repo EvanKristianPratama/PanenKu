@@ -38,6 +38,10 @@ export async function GET() {
                     farmer: item.productId.farmer,
                     location: item.productId.location,
                     soldCount: item.productId.soldCount || 0,
+                    // Harvest & Subscription fields
+                    harvestDate: item.productId.harvestDate?.toISOString() || null,
+                    harvestStatus: item.productId.harvestStatus || 'ready',
+                    isSubscribable: item.productId.isSubscribable || false,
                 },
                 quantity: item.quantity,
             }));

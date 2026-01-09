@@ -11,6 +11,12 @@ export interface Product {
   location: string;
   soldCount?: number;
   createdAt?: string;
+  // Harvest Date feature
+  harvestDate?: string;
+  harvestStatus?: 'ready' | 'growing' | 'pre-order';
+  preOrderCount?: number;
+  // Subscription feature
+  isSubscribable?: boolean;
 }
 
 export interface CartItem {

@@ -3,7 +3,7 @@
 import { Product } from '@/types';
 import { HeroSection } from './HeroSection';
 import { FeaturedSections } from './FeaturedSections';
-import { ProductList } from './ProductList';
+import { ProductShowcase } from './ProductShowcase';
 import { useSession } from 'next-auth/react';
 
 interface HomeContentProps {
@@ -13,31 +13,31 @@ interface HomeContentProps {
 export function HomeContent({ products }: HomeContentProps) {
     const { data: session, status } = useSession();
 
-    // Show loading state briefly
+    // Loading state
     if (status === 'loading') {
         return (
             <>
                 <HeroSection />
-                <ProductList products={products} />
+                <ProductShowcase products={products} />
             </>
         );
     }
 
-    // Logged in view
+    // Logged in - show FeaturedSections (personalized hero) + ProductShowcase
     if (session?.user) {
         return (
             <>
                 <FeaturedSections products={products} userName={session.user.name || 'User'} />
-                <ProductList products={products} />
+                <ProductShowcase products={products} />
             </>
         );
     }
 
-    // Guest view
+    // Guest - show HeroSection + ProductShowcase
     return (
         <>
             <HeroSection />
-            <ProductList products={products} />
+            <ProductShowcase products={products} />
         </>
     );
 }
