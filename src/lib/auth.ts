@@ -50,8 +50,8 @@ export const authOptions: NextAuthOptions = {
                 if (!dbUser) {
                     // Create new user from Google account
                     dbUser = await User.create({
-                        name: user.name,
-                        email: user.email,
+                        name: user.name || 'Google User',
+                        email: user.email || '',
                         password: 'google-oauth', // Placeholder, not used for OAuth
                         role: 'user'
                     });
