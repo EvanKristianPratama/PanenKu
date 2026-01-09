@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { LayoutDashboard, Package, Users, LogOut, ShoppingCart } from 'lucide-react';
+import { LayoutDashboard, Package, Users, LogOut, ShoppingCart, MessageCircle } from 'lucide-react';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
@@ -41,6 +41,10 @@ export default async function AdminLayout({
                     <Link href="/admin/users" className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors">
                         <Users className="w-5 h-5" />
                         Pengguna
+                    </Link>
+                    <Link href="/admin/messages" className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors">
+                        <MessageCircle className="w-5 h-5" />
+                        Pesan Support
                     </Link>
                     <Link href="/" className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-8">
                         <LogOut className="w-5 h-5" />

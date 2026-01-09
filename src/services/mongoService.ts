@@ -22,6 +22,7 @@ export const mongoService = {
             description: p.description,
             stock: p.stock,
             farmer: p.farmer,
+            farmerId: p.farmerId?.toString(),
             location: p.location,
             soldCount: p.soldCount || 0,
             createdAt: p.createdAt?.toISOString() || new Date().toISOString(),
@@ -47,6 +48,7 @@ export const mongoService = {
             description: product.description,
             stock: product.stock,
             farmer: product.farmer,
+            farmerId: product.farmerId?.toString(),
             location: product.location,
             // Harvest & Subscription fields
             harvestDate: product.harvestDate?.toISOString() || null,
@@ -62,7 +64,7 @@ export const mongoService = {
         const user = await User.findOne({ email, password }).lean() as any;
         if (user) {
             currentUserEmail = user.email;
-            return { user: { name: user.name, email: user.email }, role: user.role };
+            return { user: { id: user._id.toString(), name: user.name, email: user.email }, role: user.role };
         }
         return { user: null, role: null };
     },
@@ -76,7 +78,7 @@ export const mongoService = {
 
         const newUser = await User.create({ name, email, password, role: 'user' });
         currentUserEmail = email;
-        return { user: { name, email }, role: 'user' };
+        return { user: { id: newUser._id.toString(), name, email }, role: 'user' };
     },
 
     logout: async () => {
@@ -189,6 +191,7 @@ export const mongoService = {
             description: updated.description,
             stock: updated.stock,
             farmer: updated.farmer,
+            farmerId: updated.farmerId?.toString(),
             location: updated.location,
         };
     },

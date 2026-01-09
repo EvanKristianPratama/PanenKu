@@ -4,16 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { deleteProduct } from "@/lib/actions";
 import { toast } from "sonner";
+import { showAlert } from "@/lib/sweetalert";
 import { useTransition } from "react";
 
 export function DeleteProductButton({ id, name }: { id: string | number, name: string }) {
     const [isPending, startTransition] = useTransition();
 
-    const handleDelete = () => {
-        if (confirm(`Yakin ingin menghapus ${name}?`)) {
+    const handleDelete = async () => {
+        const confirmed = await showAlert.confirm(
+            'Hapus Produk?',
+            `Anda yakin ingin menghapus "${name}"? Tindakan ini tidak dapat dibatalkan.`
+        );
+
+        if (confirmed) {
             startTransition(async () => {
                 await deleteProduct(String(id));
-                toast.success(`Produk ${name} dihapus`);
+                showAlert.success('Berhasil', `Produk ${name} telah dihapus.`);
             });
         }
     };

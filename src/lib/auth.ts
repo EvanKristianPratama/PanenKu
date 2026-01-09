@@ -17,7 +17,7 @@ export const authOptions: NextAuthOptions = {
                     const result = await mongoService.login(credentials.email, credentials.password);
                     if (result.user) {
                         return {
-                            id: result.user.email,
+                            id: result.user.id,
                             name: result.user.name,
                             email: result.user.email,
                             role: result.role,
@@ -37,12 +37,14 @@ export const authOptions: NextAuthOptions = {
         async jwt({ token, user }) {
             if (user) {
                 token.role = (user as any).role;
+                token.id = (user as any).id;
             }
             return token;
         },
         async session({ session, token }) {
             if (session?.user) {
                 (session.user as any).role = token.role;
+                (session.user as any).id = token.id;
             }
             return session;
         }

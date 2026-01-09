@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, ShoppingBag, LogOut, Leaf, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, LogOut, Leaf, Menu, X, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from 'next-auth/react';
 
@@ -10,6 +10,7 @@ const navItems = [
     { href: '/mitra', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/mitra/products', label: 'Produk Saya', icon: Package },
     { href: '/mitra/orders', label: 'Pesanan', icon: ShoppingBag },
+    { href: '/mitra/messages', label: 'Pesan', icon: MessageCircle },
 ];
 
 export default function MitraLayout({ children }: { children: React.ReactNode }) {
@@ -46,8 +47,8 @@ export default function MitraLayout({ children }: { children: React.ReactNode })
                                 href={item.href}
                                 onClick={() => setMobileMenuOpen(false)}
                                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${pathname === item.href
-                                        ? 'bg-green-50 text-green-700 font-medium'
-                                        : 'text-gray-600 hover:bg-gray-50'
+                                    ? 'bg-green-50 text-green-700 font-medium'
+                                    : 'text-gray-600 hover:bg-gray-50'
                                     }`}
                             >
                                 <item.icon className="w-5 h-5" />
@@ -85,8 +86,8 @@ export default function MitraLayout({ children }: { children: React.ReactNode })
                             key={item.href}
                             href={item.href}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pathname === item.href
-                                    ? 'bg-green-50 text-green-700 font-medium shadow-sm'
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                ? 'bg-green-50 text-green-700 font-medium shadow-sm'
+                                : 'text-gray-600 hover:bg-gray-50'
                                 }`}
                         >
                             <item.icon className="w-5 h-5" />

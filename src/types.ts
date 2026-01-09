@@ -8,6 +8,7 @@ export interface Product {
   description: string;
   stock: number;
   farmer: string;
+  farmerId?: string;
   location: string;
   soldCount?: number;
   createdAt?: string;
@@ -29,5 +30,28 @@ export interface User {
   name: string;
   email: string;
   password: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'user' | 'farmer';
+}
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  content: string;
+  createdAt: any; // Firestore Timestamp
+  read: boolean;
+}
+
+export interface ChatRoom {
+  id: string;
+  participants: string[]; // [userId, farmerId] or [userId, adminId]
+  participantNames: { [key: string]: string }; // { userId: 'User Name', farmerId: 'Farmer Name' }
+  type: 'support' | 'product_inquiry';
+  lastMessage?: string;
+  lastMessageTime?: any;
+  unreadCount?: number;
+  metadata?: {
+    productName?: string;
+    productId?: string;
+  };
 }
