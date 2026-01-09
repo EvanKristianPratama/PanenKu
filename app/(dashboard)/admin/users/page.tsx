@@ -8,6 +8,13 @@ import { Button } from '@/components/ui/button';
 import { User, Mail, Shield, Search, Users, Leaf, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { showAlert } from '@/lib/sweetalert';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 interface UserData {
     _id: string;
@@ -194,24 +201,28 @@ export default function AdminUsersPage() {
                                             </Badge>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex gap-2">
-                                                {roleOptions.map((option) => (
-                                                    <Button
-                                                        key={option.value}
-                                                        size="sm"
-                                                        variant={user.role === option.value ? "default" : "outline"}
-                                                        disabled={user.role === option.value || updating === user._id}
-                                                        onClick={() => handleRoleChange(user._id, option.value)}
-                                                        className={user.role === option.value ? 'bg-green-600 hover:bg-green-700' : ''}
-                                                    >
-                                                        {updating === user._id ? (
-                                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                                        ) : (
-                                                            option.label
-                                                        )}
-                                                    </Button>
-                                                ))}
-                                            </div>
+                                            <Select
+                                                disabled={updating === user._id}
+                                                onValueChange={(val) => handleRoleChange(user._id, val)}
+                                                defaultValue={user.role}
+                                            >
+                                                <SelectTrigger className="w-[140px]">
+                                                    {updating === user._id ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                                    ) : null}
+                                                    <SelectValue placeholder="Pilih Role" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {roleOptions.map((option) => (
+                                                        <SelectItem key={option.value} value={option.value}>
+                                                            <div className="flex items-center gap-2">
+                                                                <option.icon className={`w-4 h-4 ${option.textColor}`} />
+                                                                <span>{option.label}</span>
+                                                            </div>
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </td>
                                     </tr>
                                 );
