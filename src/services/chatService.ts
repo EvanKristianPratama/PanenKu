@@ -46,10 +46,10 @@ export const chatService = {
                 // Also check metadata match if product inquiry
                 if (type === 'product_inquiry' && metadata?.productId) {
                     if (data.metadata?.productId === metadata.productId) {
-                        existingRoom = { id: doc.id, ...data };
+                        existingRoom = { ...data, id: doc.id };
                     }
                 } else {
-                    existingRoom = { id: doc.id, ...data };
+                    existingRoom = { ...data, id: doc.id };
                 }
             }
         });
