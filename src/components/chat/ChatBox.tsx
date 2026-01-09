@@ -43,7 +43,7 @@ export function ChatBox({ room, onClose, onMinimize }: ChatBoxProps) {
         try {
             await chatService.sendMessage(
                 room.id,
-                String(session.user.id), // Ensure ID is string
+                String((session.user as any).id), // Ensure ID is string
                 session.user.name || 'User',
                 newMessage
             );
@@ -104,7 +104,7 @@ export function ChatBox({ room, onClose, onMinimize }: ChatBoxProps) {
                 ) : (
                     messages.map((msg) => {
                         // Check if current user is sender
-                        const isMe = String(msg.senderId) === String(session?.user?.id);
+                        const isMe = String(msg.senderId) === String((session?.user as any)?.id);
                         return (
                             <div
                                 key={msg.id}
@@ -112,8 +112,8 @@ export function ChatBox({ room, onClose, onMinimize }: ChatBoxProps) {
                             >
                                 <div
                                     className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm ${isMe
-                                            ? 'bg-green-600 text-white rounded-br-none'
-                                            : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
+                                        ? 'bg-green-600 text-white rounded-br-none'
+                                        : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
                                         }`}
                                 >
                                     {msg.content}
