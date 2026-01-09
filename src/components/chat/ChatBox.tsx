@@ -82,7 +82,7 @@ export function ChatBox({ room, onClose, embedded = false }: ChatBoxProps) {
 
     const containerClass = embedded
         ? "flex flex-col h-full bg-gray-50/50"
-        : "fixed bottom-6 right-6 w-80 sm:w-96 bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-white/20 z-50 flex flex-col h-[600px] ring-1 ring-black/5 transition-all duration-300";
+        : "fixed bottom-6 right-6 w-80 sm:w-96 bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-white/20 z-50 flex flex-col h-[450px] ring-1 ring-black/5 transition-all duration-300";
 
     return (
         <div className={containerClass}>
