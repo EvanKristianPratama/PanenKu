@@ -91,11 +91,11 @@ export const chatService = {
         return messageRef.id;
     },
 
-    // Subscribe to messages in a room
+    // Subscribe to messages in a room (newest first)
     subscribeToMessages: (roomId: string, callback: (messages: ChatMessage[]) => void) => {
         const q = query(
             collection(db, `rooms/${roomId}/messages`),
-            orderBy('createdAt', 'asc')
+            orderBy('createdAt', 'desc')
         );
 
         return onSnapshot(q, (snapshot) => {

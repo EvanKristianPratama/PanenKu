@@ -26,10 +26,10 @@ export function ChatBox({ room, onClose, embedded = false }: ChatBoxProps) {
     const [isMinimized, setIsMinimized] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    // Auto-scroll to bottom when new messages arrive
+    // Auto-scroll to top when new messages arrive (since newest is at top)
     useEffect(() => {
         if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+            scrollRef.current.scrollTop = 0;
         }
     }, [messages]);
 
