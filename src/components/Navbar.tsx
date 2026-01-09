@@ -93,6 +93,22 @@ export function Navbar() {
               </Link>
             )}
 
+            {/* Farmer/Mitra Dashboard Link */}
+            {(session?.user as any)?.role === 'farmer' && (
+              <Link href="/mitra">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`transition-colors ${isScrolled
+                    ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    : (session && pathname === '/') ? 'text-white hover:bg-white/20' : 'text-green-700 hover:text-green-900 hover:bg-green-100'
+                    } ${pathname?.startsWith('/mitra') ? 'font-medium bg-green-100' : ''}`}
+                >
+                  🌾 Petani Dashboard
+                </Button>
+              </Link>
+            )}
+
             {/* Cart Preview - Only show when logged in */}
             {session && (
               <CartPreview
@@ -114,10 +130,10 @@ export function Navbar() {
                       }`}
                   >
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium ${isScrolled
-                        ? 'bg-green-100 text-green-700'
-                        : (session && pathname === '/')
-                          ? 'bg-white/30 text-white'
-                          : 'bg-green-100 text-green-700'
+                      ? 'bg-green-100 text-green-700'
+                      : (session && pathname === '/')
+                        ? 'bg-white/30 text-white'
+                        : 'bg-green-100 text-green-700'
                       }`}>
                       {session.user.name?.charAt(0).toUpperCase()}
                     </div>
