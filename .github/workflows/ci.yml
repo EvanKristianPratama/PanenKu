@@ -26,5 +26,4 @@ jobs:
       run: npm run lint
       
     - name: Run Tests
-      # We just want to run the tests once, not in watch mode
       run: npm test -- --run
