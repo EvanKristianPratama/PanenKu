@@ -1,7 +1,7 @@
 import { mongoService } from '@/services/mongoService';
 import { HomeContent } from '@/components/HomeContent';
 
-export const revalidate = 0; // Disable cache for this page to always show new products
+export const revalidate = 0; 
 
 export default async function Home() {
     const products = await mongoService.getProducts();
@@ -12,4 +12,7 @@ export default async function Home() {
         </main>
     );
 }
+
+// Test ke dev
+
 
