@@ -1,10 +1,26 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+/**
+ * CartContext - Backward Compatibility Layer
+ * 
+ * This context now uses Zustand store internally but maintains
+ * the same API for backward compatibility with existing components.
+ * 
+ * For new components, prefer using:
+ * - useCartActions() hook for actions with auth check
+ * - useCartStore() selectors for state
+ */
+
+import { createContext, useContext, useEffect, ReactNode } from "react";
 import { CartItem, Product } from "@/types";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import { useCartStore, useCartItems, useCartCount, useCartLoading } from "@/stores/cartStore";
+import { MESSAGES } from "@/constants/messages";
 
+// ============================================
+// Types (unchanged for backward compatibility)
+// ============================================
 interface CartContextType {
     cartItems: CartItem[];
     cartCount: number;
@@ -18,110 +34,65 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+// ============================================
+// Provider (now wraps Zustand store)
+// ============================================
 export function CartProvider({ children }: { children: ReactNode }) {
-    const [cartItems, setCartItems] = useState<CartItem[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
     const { data: session, status } = useSession();
+    
+    // Use Zustand store
+    const cartItems = useCartItems();
+    const cartCount = useCartCount();
+    const isLoading = useCartLoading();
+    const { 
+        fetchCart, 
+        addItem, 
+        removeItem, 
+        updateQuantity: storeUpdateQuantity, 
+        clearCart: storeClearCart,
+        reset 
+    } = useCartStore();
 
-    // Fetch cart from MongoDB
-    const refreshCart = useCallback(async () => {
-        if (status === 'loading') return;
-
-        try {
-            const res = await fetch('/api/cart');
-            const data = await res.json();
-            setCartItems(data.items || []);
-        } catch (error) {
-            console.error('Failed to refresh cart:', error);
-        }
-    }, [status]);
-
-    // Load cart when session changes
+    // Sync cart with session state
     useEffect(() => {
         if (status === 'authenticated') {
-            refreshCart();
+            fetchCart();
         } else if (status === 'unauthenticated') {
-            setCartItems([]);
+            reset();
         }
-    }, [status, refreshCart]);
+    }, [status, fetchCart, reset]);
 
+    // Wrapper functions with toast notifications (backward compat)
     const addToCart = async (product: Product, quantity: number = 1) => {
         if (!session) {
-            toast.error('Silakan login terlebih dahulu');
+            toast.error(MESSAGES.AUTH.LOGIN_REQUIRED);
             return;
         }
 
-        setIsLoading(true);
-        try {
-            const res = await fetch('/api/cart', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId: String(product.id), quantity }),
-            });
-
-            if (res.ok) {
-                await refreshCart();
-                toast.success(`${product.name} ditambahkan ke keranjang`);
-            } else {
-                const data = await res.json();
-                toast.error(data.error || 'Gagal menambah ke keranjang');
-            }
-        } catch (error) {
-            toast.error('Gagal menambah ke keranjang');
-        } finally {
-            setIsLoading(false);
+        const success = await addItem(product, quantity);
+        if (success) {
+            toast.success(MESSAGES.CART.ADDED(product.name));
+        } else {
+            toast.error(MESSAGES.CART.ADD_ERROR);
         }
     };
 
     const removeFromCart = async (productId: string | number) => {
-        setIsLoading(true);
-        try {
-            const res = await fetch(`/api/cart?productId=${String(productId)}`, {
-                method: 'DELETE',
-            });
-
-            if (res.ok) {
-                await refreshCart();
-                toast.info("Produk dihapus dari keranjang");
-            }
-        } catch (error) {
-            toast.error('Gagal menghapus dari keranjang');
-        } finally {
-            setIsLoading(false);
-        }
+        await removeItem(productId);
+        toast.info(MESSAGES.CART.REMOVED);
     };
 
     const updateQuantity = async (productId: string | number, quantity: number) => {
-        if (quantity < 1) return;
-
-        // Optimistic update
-        setCartItems(prev => prev.map(item =>
-            String(item.product.id) === String(productId)
-                ? { ...item, quantity }
-                : item
-        ));
-
-        try {
-            const res = await fetch('/api/cart', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId: String(productId), quantity }),
-            });
-
-            if (!res.ok) {
-                // Revert on error
-                await refreshCart();
-            }
-        } catch (error) {
-            await refreshCart();
-        }
+        await storeUpdateQuantity(productId, quantity);
     };
 
     const clearCart = () => {
-        setCartItems([]);
+        storeClearCart();
     };
 
-    const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    const refreshCart = async () => {
+        await fetchCart();
+    };
 
     return (
         <CartContext.Provider value={{

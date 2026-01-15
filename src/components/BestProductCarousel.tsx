@@ -6,10 +6,7 @@ import { ChevronLeft, ChevronRight, ShoppingCart, Star } from 'lucide-react';
 import Link from 'next/link';
 import useEmblaCarousel from 'embla-carousel-react';
 import { useCallback, useEffect, useState } from 'react';
-import { useCart } from '@/context/CartContext';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { useCartActions } from '@/hooks/useCartActions';
 
 interface BestProductCarouselProps {
     products: Product[];
@@ -18,9 +15,7 @@ interface BestProductCarouselProps {
 export function BestProductCarousel({ products }: BestProductCarouselProps) {
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
     const [selectedIndex, setSelectedIndex] = useState(0);
-    const { addToCart } = useCart();
-    const { data: session } = useSession();
-    const router = useRouter();
+    const { addToCart, isLoading } = useCartActions();
 
     const scrollPrev = useCallback(() => {
         if (emblaApi) emblaApi.scrollPrev();
@@ -53,11 +48,7 @@ export function BestProductCarousel({ products }: BestProductCarouselProps) {
 
     const handleAddToCart = (product: Product, e: React.MouseEvent) => {
         e.preventDefault();
-        if (!session) {
-            toast.error('Silakan login terlebih dahulu');
-            router.push('/login');
-            return;
-        }
+        addToCart(product);
         addToCart(product);
     };
 

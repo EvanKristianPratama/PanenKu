@@ -4,17 +4,17 @@ import { Product } from '@/types';
 import { HeroSection } from './HeroSection';
 import { FeaturedSections } from './FeaturedSections';
 import { ProductShowcase } from './ProductShowcase';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface HomeContentProps {
     products: Product[];
 }
 
 export function HomeContent({ products }: HomeContentProps) {
-    const { data: session, status } = useSession();
+    const { user, isAuthenticated, isLoading } = useAuth();
 
     // Loading state
-    if (status === 'loading') {
+    if (isLoading) {
         return (
             <>
                 <HeroSection />
@@ -24,10 +24,10 @@ export function HomeContent({ products }: HomeContentProps) {
     }
 
     // Logged in - show FeaturedSections (personalized hero) + ProductShowcase
-    if (session?.user) {
+    if (isAuthenticated && user) {
         return (
             <>
-                <FeaturedSections products={products} userName={session.user.name || 'User'} />
+                <FeaturedSections products={products} userName={user.name || 'User'} />
                 <ProductShowcase products={products} />
             </>
         );

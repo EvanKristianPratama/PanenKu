@@ -1,16 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ProductList } from '@/components/ProductList';
-import { CartProvider } from '@/context/CartContext';
-import { useSession } from 'next-auth/react';
 import { vi } from 'vitest';
 
-// Mock useSession before any tests
-vi.mock('next-auth/react', () => ({
-    useSession: vi.fn(() => ({ data: null, status: 'unauthenticated' })),
-    signIn: vi.fn(),
-    signOut: vi.fn(),
-    SessionProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
+// Mocks are already set up in setup.ts
 
 const mockProducts = [
     {
@@ -39,30 +31,20 @@ const mockProducts = [
     }
 ];
 
-const renderWithProviders = (component: React.ReactElement) => {
-    return render(
-        <CartProvider>
-            {component}
-        </CartProvider>
-    );
-};
-
 describe('ProductList', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        // Setup default mock return value for each test
-        (useSession as any).mockReturnValue({ data: null, status: 'unauthenticated' });
     });
 
     it('should render all products', () => {
-        renderWithProviders(<ProductList products={mockProducts} />);
+        render(<ProductList products={mockProducts} />);
 
         expect(screen.getByText('Beras Organik')).toBeInTheDocument();
         expect(screen.getByText('Tomat Segar')).toBeInTheDocument();
     });
 
     it('should filter products by search', () => {
-        renderWithProviders(<ProductList products={mockProducts} />);
+        render(<ProductList products={mockProducts} />);
 
         const searchInput = screen.getByPlaceholderText('Cari produk...');
         fireEvent.change(searchInput, { target: { value: 'beras' } });
@@ -72,7 +54,7 @@ describe('ProductList', () => {
     });
 
     it('should filter products by category', () => {
-        renderWithProviders(<ProductList products={mockProducts} />);
+        render(<ProductList products={mockProducts} />);
 
         const categoryButton = screen.getByText('Sayuran');
         fireEvent.click(categoryButton);
@@ -82,7 +64,7 @@ describe('ProductList', () => {
     });
 
     it('should show all products when clicking "Semua" category', () => {
-        renderWithProviders(<ProductList products={mockProducts} />);
+        render(<ProductList products={mockProducts} />);
 
         const berasCategory = screen.getByText('Beras');
         fireEvent.click(berasCategory);
@@ -95,13 +77,13 @@ describe('ProductList', () => {
     });
 
     it('should display product count', () => {
-        renderWithProviders(<ProductList products={mockProducts} />);
+        render(<ProductList products={mockProducts} />);
 
         expect(screen.getByText('Menampilkan 2 produk')).toBeInTheDocument();
     });
 
     it('should show empty message when no products match search', () => {
-        renderWithProviders(<ProductList products={mockProducts} />);
+        render(<ProductList products={mockProducts} />);
 
         const searchInput = screen.getByPlaceholderText('Cari produk...');
         fireEvent.change(searchInput, { target: { value: 'produk tidak ada' } });

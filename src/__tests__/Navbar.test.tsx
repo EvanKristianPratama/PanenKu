@@ -1,50 +1,48 @@
 import { render, screen } from '@testing-library/react';
 import { Navbar } from '@/components/Navbar';
-import { useCart } from '@/context/CartContext';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavbarScroll } from '@/hooks/useNavbarScroll';
+import { useSupportChat } from '@/hooks/useSupportChat';
 import { usePathname } from 'next/navigation';
 import { vi } from 'vitest';
 
-vi.mock('@/context/CartContext');
-vi.mock('next-auth/react');
-vi.mock('next/navigation');
+// Mocks are already set up in setup.ts, but we can override them per test
 
 describe('Navbar', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         (usePathname as any).mockReturnValue('/');
+        (useNavbarScroll as any).mockReturnValue({ isScrolled: false, isVisible: true });
+        (useSupportChat as any).mockReturnValue({
+            activeChatRoom: null,
+            isLoading: false,
+            openSupportChat: vi.fn(),
+            closeSupportChat: vi.fn(),
+        });
     });
 
     it('should render logo and brand name', () => {
-        (useCart as any).mockReturnValue({ cartCount: 0 });
-        (useSession as any).mockReturnValue({ data: null });
+        (useAuth as any).mockReturnValue({
+            user: null,
+            isAuthenticated: false,
+            isAdmin: false,
+            isFarmer: false,
+            logout: vi.fn(),
+        });
 
         render(<Navbar />);
 
         expect(screen.getByText('PanenKu')).toBeInTheDocument();
     });
 
-    it('should show cart badge when items exist', () => {
-        (useCart as any).mockReturnValue({ cartCount: 5 });
-        (useSession as any).mockReturnValue({ data: null });
-
-        render(<Navbar />);
-
-        expect(screen.getByText('5')).toBeInTheDocument();
-    });
-
-    it('should not show cart badge when cart is empty', () => {
-        (useCart as any).mockReturnValue({ cartCount: 0 });
-        (useSession as any).mockReturnValue({ data: null });
-
-        render(<Navbar />);
-
-        expect(screen.queryByText('0')).not.toBeInTheDocument();
-    });
-
     it('should show login button when not authenticated', () => {
-        (useCart as any).mockReturnValue({ cartCount: 0 });
-        (useSession as any).mockReturnValue({ data: null });
+        (useAuth as any).mockReturnValue({
+            user: null,
+            isAuthenticated: false,
+            isAdmin: false,
+            isFarmer: false,
+            logout: vi.fn(),
+        });
 
         render(<Navbar />);
 
@@ -52,20 +50,27 @@ describe('Navbar', () => {
     });
 
     it('should show user menu when authenticated', () => {
-        (useCart as any).mockReturnValue({ cartCount: 0 });
-        (useSession as any).mockReturnValue({
-            data: { user: { name: 'Test User', email: 'test@example.com' } }
+        (useAuth as any).mockReturnValue({
+            user: { name: 'Test User', email: 'test@example.com' },
+            isAuthenticated: true,
+            isAdmin: false,
+            isFarmer: false,
+            logout: vi.fn(),
         });
 
         render(<Navbar />);
 
-        expect(screen.getByText('Test User')).toBeInTheDocument();
+        // Check for first name displayed
+        expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
     it('should show admin link for admin users', () => {
-        (useCart as any).mockReturnValue({ cartCount: 0 });
-        (useSession as any).mockReturnValue({
-            data: { user: { name: 'Admin', email: 'admin@example.com', role: 'admin' } }
+        (useAuth as any).mockReturnValue({
+            user: { name: 'Admin User', email: 'admin@example.com', role: 'admin' },
+            isAuthenticated: true,
+            isAdmin: true,
+            isFarmer: false,
+            logout: vi.fn(),
         });
         (usePathname as any).mockReturnValue('/admin');
 
@@ -74,5 +79,36 @@ describe('Navbar', () => {
         // Check if there's a link to /admin
         const adminLink = screen.getByRole('link', { name: /admin/i });
         expect(adminLink).toHaveAttribute('href', '/admin');
+    });
+
+    it('should show farmer dashboard link for farmer users', () => {
+        (useAuth as any).mockReturnValue({
+            user: { name: 'Farmer User', email: 'farmer@example.com', role: 'farmer' },
+            isAuthenticated: true,
+            isAdmin: false,
+            isFarmer: true,
+            logout: vi.fn(),
+        });
+
+        render(<Navbar />);
+
+        expect(screen.getByText(/Petani Dashboard/)).toBeInTheDocument();
+    });
+
+    it('should handle scroll state correctly', () => {
+        (useAuth as any).mockReturnValue({
+            user: null,
+            isAuthenticated: false,
+            isAdmin: false,
+            isFarmer: false,
+            logout: vi.fn(),
+        });
+        (useNavbarScroll as any).mockReturnValue({ isScrolled: true, isVisible: true });
+
+        render(<Navbar />);
+
+        // When scrolled, navbar should have different styling (white background)
+        const nav = screen.getByRole('navigation');
+        expect(nav.className).toContain('bg-white');
     });
 });

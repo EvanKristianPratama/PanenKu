@@ -1,14 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ProductCard } from '@/components/ProductCard';
-import { useCart } from '@/context/CartContext';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useCartActions } from '@/hooks/useCartActions';
 import { vi } from 'vitest';
-
-// Mock dependencies
-vi.mock('@/context/CartContext');
-vi.mock('next-auth/react');
-vi.mock('next/navigation');
 
 const mockProduct = {
     id: 1,
@@ -24,18 +17,17 @@ const mockProduct = {
 };
 
 describe('ProductCard', () => {
-    const mockAddToCart = vi.fn();
-    const mockPush = vi.fn();
+    const mockAddToCart = vi.fn(() => Promise.resolve(true));
 
     beforeEach(() => {
         vi.clearAllMocks();
-        (useCart as any).mockReturnValue({ addToCart: mockAddToCart });
-        (useRouter as any).mockReturnValue({ push: mockPush });
+        (useCartActions as any).mockReturnValue({
+            addToCart: mockAddToCart,
+            isLoading: false,
+        });
     });
 
     it('should render product information correctly', () => {
-        (useSession as any).mockReturnValue({ data: { user: { name: 'Test User' } } });
-
         render(<ProductCard product={mockProduct} />);
 
         expect(screen.getByText('Test Product')).toBeInTheDocument();
@@ -43,34 +35,38 @@ describe('ProductCard', () => {
         expect(screen.getByText('Sayuran')).toBeInTheDocument();
     });
 
-    it('should add to cart when logged in', () => {
-        (useSession as any).mockReturnValue({ data: { user: { name: 'Test User' } } });
-
+    it('should call addToCart when add button clicked', async () => {
         render(<ProductCard product={mockProduct} />);
 
-        const addButton = screen.getByRole('button', { name: /tambah/i });
+        const addButton = screen.getByRole('button');
         fireEvent.click(addButton);
 
         expect(mockAddToCart).toHaveBeenCalledWith(mockProduct);
     });
 
-    it('should redirect to login when not logged in', () => {
-        (useSession as any).mockReturnValue({ data: null });
-
-        render(<ProductCard product={mockProduct} />);
-
-        const addButton = screen.getByRole('button', { name: /tambah/i });
-        fireEvent.click(addButton);
-
-        expect(mockPush).toHaveBeenCalledWith('/login');
-    });
-
     it('should navigate to product detail on card click', () => {
-        (useSession as any).mockReturnValue({ data: null });
-
         render(<ProductCard product={mockProduct} />);
 
         const card = screen.getByText('Test Product').closest('a');
         expect(card).toHaveAttribute('href', '/product/1');
+    });
+
+    it('should show loading state when isLoading is true', () => {
+        (useCartActions as any).mockReturnValue({
+            addToCart: mockAddToCart,
+            isLoading: true,
+        });
+
+        render(<ProductCard product={mockProduct} />);
+
+        // Component should still render, loading state is handled internally
+        expect(screen.getByText('Test Product')).toBeInTheDocument();
+    });
+
+    it('should display farmer and location', () => {
+        render(<ProductCard product={mockProduct} />);
+
+        expect(screen.getByText('Test Farmer')).toBeInTheDocument();
+        expect(screen.getByText('Test Location')).toBeInTheDocument();
     });
 });

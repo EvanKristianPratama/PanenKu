@@ -1,13 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Cart } from '@/components/Cart';
 import { useCart } from '@/context/CartContext';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 import { vi } from 'vitest';
-
-vi.mock('@/context/CartContext');
-vi.mock('next-auth/react');
-vi.mock('next/navigation');
 
 const mockCartItem = {
     product: {
@@ -29,12 +24,15 @@ describe('Cart', () => {
     const mockUpdateQuantity = vi.fn();
     const mockRemoveFromCart = vi.fn();
     const mockClearCart = vi.fn();
-    const mockPush = vi.fn();
 
     beforeEach(() => {
         vi.clearAllMocks();
-        (useRouter as any).mockReturnValue({ push: mockPush });
-        global.fetch = vi.fn();
+        global.fetch = vi.fn(() => 
+            Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve({ user: {} })
+            })
+        ) as any;
     });
 
     it('should show empty cart message when no items', () => {
@@ -44,7 +42,7 @@ describe('Cart', () => {
             removeFromCart: mockRemoveFromCart,
             clearCart: mockClearCart
         });
-        (useSession as any).mockReturnValue({ data: null });
+        (useAuth as any).mockReturnValue({ isAuthenticated: false });
 
         render(<Cart />);
 
@@ -58,7 +56,10 @@ describe('Cart', () => {
             removeFromCart: mockRemoveFromCart,
             clearCart: mockClearCart
         });
-        (useSession as any).mockReturnValue({ data: { user: { name: 'Test' } } });
+        (useAuth as any).mockReturnValue({ 
+            isAuthenticated: true,
+            user: { name: 'Test User' }
+        });
 
         render(<Cart />);
 
@@ -73,7 +74,10 @@ describe('Cart', () => {
             removeFromCart: mockRemoveFromCart,
             clearCart: mockClearCart
         });
-        (useSession as any).mockReturnValue({ data: { user: { name: 'Test' } } });
+        (useAuth as any).mockReturnValue({ 
+            isAuthenticated: true,
+            user: { name: 'Test User' }
+        });
 
         render(<Cart />);
 
@@ -92,25 +96,45 @@ describe('Cart', () => {
             removeFromCart: mockRemoveFromCart,
             clearCart: mockClearCart
         });
-        (useSession as any).mockReturnValue({ data: { user: { name: 'Test' } } });
+        (useAuth as any).mockReturnValue({ 
+            isAuthenticated: true,
+            user: { name: 'Test User' }
+        });
 
         render(<Cart />);
 
-        const checkoutButton = screen.getByText('Checkout');
+        const checkoutButton = screen.getByText('Checkout Sekarang');
         expect(checkoutButton).toBeDisabled();
     });
 
-    it('should redirect to login when not logged in', () => {
+    it('should show login button when not logged in', () => {
         (useCart as any).mockReturnValue({
             cartItems: [mockCartItem],
             updateQuantity: mockUpdateQuantity,
             removeFromCart: mockRemoveFromCart,
             clearCart: mockClearCart
         });
-        (useSession as any).mockReturnValue({ data: null });
+        (useAuth as any).mockReturnValue({ isAuthenticated: false });
 
         render(<Cart />);
 
         expect(screen.getByText('Login untuk Checkout')).toBeInTheDocument();
+    });
+
+    it('should show shipping info form when authenticated', () => {
+        (useCart as any).mockReturnValue({
+            cartItems: [mockCartItem],
+            updateQuantity: mockUpdateQuantity,
+            removeFromCart: mockRemoveFromCart,
+            clearCart: mockClearCart
+        });
+        (useAuth as any).mockReturnValue({ 
+            isAuthenticated: true,
+            user: { name: 'Test User' }
+        });
+
+        render(<Cart />);
+
+        expect(screen.getByText('Informasi Pengiriman')).toBeInTheDocument();
     });
 });

@@ -1,70 +1,58 @@
-/**
- * ProductCard - Backward Compatibility Export
- * 
- * This file re-exports the ProductCard for backward compatibility.
- * The actual implementation is now in:
- * - Presentational: @/components/common/ProductCard/ProductCard.tsx
- * - Container: @/components/features/product/ProductCardContainer.tsx
- * 
- * For new code, prefer importing from:
- * - import { ProductCard } from '@/components/common/ProductCard';
- * - import { ProductCardContainer } from '@/components/features/product';
- */
-
-'use client';
-
-import { Product } from '../types';
-import { Button } from './ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
+import { Product } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { MapPin, User, ShoppingCart, Sparkles, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
-import { useCartActions } from '@/hooks/useCartActions';
-import { useState } from 'react';
 import { APP_CONFIG } from '@/constants/config';
 
-interface ProductCardProps {
+// ============================================
+// Types
+// ============================================
+export interface ProductCardProps {
   product: Product;
   isNew?: boolean;
   isBestSeller?: boolean;
+  onAddToCart?: (e: React.MouseEvent) => void;
+  isAddingToCart?: boolean;
 }
 
-export function ProductCard({ product, isNew, isBestSeller }: ProductCardProps) {
-  const { addToCart, isLoading } = useCartActions();
-  const [isAdding, setIsAdding] = useState(false);
+// ============================================
+// Helper Functions (pure, no hooks)
+// ============================================
+const checkIsNew = (product: Product, isNewProp?: boolean): boolean => {
+  if (isNewProp !== undefined) return isNewProp;
+  if (!product.createdAt) return false;
+  const createdDate = new Date(product.createdAt);
+  const now = new Date();
+  const diffDays = (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
+  return diffDays <= APP_CONFIG.NEW_PRODUCT_DAYS;
+};
 
-  const handleAddToCart = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsAdding(true);
-    await addToCart(product);
-    setIsAdding(false);
-  };
+const checkIsBestSeller = (product: Product, isBestSellerProp?: boolean): boolean => {
+  if (isBestSellerProp !== undefined) return isBestSellerProp;
+  return (product.soldCount || 0) >= APP_CONFIG.BEST_SELLER_THRESHOLD;
+};
 
-  // Check if product is new (created within last 7 days)
-  const checkIsNew = () => {
-    if (isNew !== undefined) return isNew;
-    if (!product.createdAt) return false;
-    const createdDate = new Date(product.createdAt);
-    const now = new Date();
-    const diffDays = (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
-    return diffDays <= APP_CONFIG.NEW_PRODUCT_DAYS;
-  };
-
-  // Check if best seller (soldCount > threshold)
-  const checkIsBestSeller = () => {
-    if (isBestSeller !== undefined) return isBestSeller;
-    return (product.soldCount || 0) >= APP_CONFIG.BEST_SELLER_THRESHOLD;
-  };
-
-  const showNewLabel = checkIsNew();
-  const showBestSellerLabel = checkIsBestSeller();
+// ============================================
+// Component (Presentational - NO HOOKS)
+// ============================================
+export function ProductCard({ 
+  product, 
+  isNew, 
+  isBestSeller,
+  onAddToCart,
+  isAddingToCart = false,
+}: ProductCardProps) {
+  const showNewLabel = checkIsNew(product, isNew);
+  const showBestSellerLabel = checkIsBestSeller(product, isBestSeller);
   const isOutOfStock = product.stock === 0;
   const isLowStock = product.stock <= APP_CONFIG.LOW_STOCK_THRESHOLD && product.stock > 0;
-  const isButtonDisabled = isOutOfStock || isAdding || isLoading;
 
   return (
     <Link href={`/product/${product.id}`}>
       <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col group border-0 shadow-md">
+        {/* Image Section */}
         <div className="relative aspect-square overflow-hidden">
           <img
             src={product.image}
@@ -91,21 +79,23 @@ export function ProductCard({ product, isNew, isBestSeller }: ProductCardProps) 
           <Badge className="absolute top-3 right-3 bg-green-500/90 hover:bg-green-600/90 backdrop-blur-sm">
             {product.category}
           </Badge>
+          
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
           {/* Stock indicator */}
-          {product.stock <= 5 && product.stock > 0 && (
+          {isLowStock && (
             <div className="absolute bottom-3 left-3 bg-red-500/90 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
               Stok terbatas: {product.stock}
             </div>
           )}
-          {product.stock === 0 && (
+          {isOutOfStock && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
               <span className="text-white font-bold text-lg bg-red-600 px-4 py-2 rounded-lg">Stok Habis</span>
             </div>
           )}
         </div>
 
+        {/* Content Section */}
         <CardHeader className="p-4 pb-2">
           <CardTitle className="text-lg font-semibold line-clamp-1">{product.name}</CardTitle>
           <p className="text-green-600 font-bold text-xl">
@@ -136,14 +126,15 @@ export function ProductCard({ product, isNew, isBestSeller }: ProductCardProps) 
           </div>
         </CardContent>
 
+        {/* Footer Section */}
         <CardFooter className="p-4 pt-0 mt-auto">
           <Button
             className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg shadow-green-500/25 disabled:opacity-50"
-            onClick={handleAddToCart}
-            disabled={isButtonDisabled}
+            onClick={onAddToCart}
+            disabled={isOutOfStock || isAddingToCart}
           >
             <ShoppingCart className="w-4 h-4 mr-2" />
-            {isOutOfStock ? 'Stok Habis' : isAdding ? 'Menambahkan...' : 'Tambah ke Keranjang'}
+            {isOutOfStock ? 'Stok Habis' : isAddingToCart ? 'Menambahkan...' : 'Tambah ke Keranjang'}
           </Button>
         </CardFooter>
       </Card>

@@ -1,8 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ShoppingCart, Sprout, User, LogOut, Menu, X, MessageCircle } from 'lucide-react';
-import { Badge } from './ui/badge';
+import { ShoppingCart, Sprout, User, LogOut, MessageCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -13,82 +11,29 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import Link from 'next/link';
-import { useCart } from '@/context/CartContext';
-import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { CartPreview } from './CartPreview';
-import { chatService } from '@/services/chatService';
 import { ChatBox } from './chat/ChatBox';
-import { ChatRoom } from '@/types';
-import { showAlert } from '@/lib/sweetalert';
+
+// Custom hooks
+import { useAuth } from '@/hooks/useAuth';
+import { useNavbarScroll } from '@/hooks/useNavbarScroll';
+import { useSupportChat } from '@/hooks/useSupportChat';
+
+// Constants
+import { ROUTES } from '@/constants/routes';
 
 export function Navbar() {
-  const { cartCount } = useCart();
-  const { data: session } = useSession();
   const pathname = usePathname();
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
-  const [activeChatRoom, setActiveChatRoom] = useState<ChatRoom | null>(null);
+  
+  // Custom hooks - clean separation of concerns
+  const { user, isAuthenticated, isAdmin, isFarmer, logout } = useAuth();
+  const { isScrolled, isVisible } = useNavbarScroll();
+  const { activeChatRoom, openSupportChat, closeSupportChat } = useSupportChat();
 
-  const handleChatSupport = async () => {
-    if (!session?.user) {
-      showAlert.error('Login Diperlukan', 'Silakan login untuk menghubungi support');
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/contact/admin');
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error);
-      const adminId = data.id;
-
-      const userId = (session.user as any).id;
-      if (userId === adminId) {
-        showAlert.info('Info', 'Anda adalah admin');
-        return;
-      }
-
-      const participants = [String(userId), String(adminId)];
-      const participantNames = {
-        [String(userId)]: session.user.name || 'User',
-        [String(adminId)]: 'Admin Support'
-      };
-
-      const room = await chatService.createRoom(
-        participants,
-        participantNames,
-        'support',
-        { productName: 'Bantuan & Support' }
-      );
-
-      setActiveChatRoom(room);
-    } catch (error) {
-      console.error(error);
-      showAlert.error('Gagal', `Error: ${(error as any).message}`);
-    }
-  };
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY && currentScrollY > 80) {
-        setIsVisible(false);
-      } else {
-        setIsVisible(true);
-      }
-      setIsScrolled(currentScrollY > 10);
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
-
-  const handleLogout = () => {
-    signOut({ callbackUrl: window.location.origin + '/login' });
-  };
+  // Derived state
+  const isHomePage = pathname === '/';
+  const showWhiteText = isAuthenticated && isHomePage && !isScrolled;
 
   return (
     <>
@@ -102,15 +47,15 @@ export function Navbar() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5 group">
+            <Link href={ROUTES.HOME} className="flex items-center gap-2.5 group">
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 ${isScrolled
                 ? 'bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-200'
-                : (session && pathname === '/') ? 'bg-white/20 backdrop-blur-sm' : 'bg-green-100'
+                : showWhiteText ? 'bg-white/20 backdrop-blur-sm' : 'bg-green-100'
                 }`}>
-                <Sprout className={`w-5 h-5 transition-colors ${isScrolled ? 'text-white' : (session && pathname === '/') ? 'text-white' : 'text-green-600'
+                <Sprout className={`w-5 h-5 transition-colors ${isScrolled ? 'text-white' : showWhiteText ? 'text-white' : 'text-green-600'
                   }`} />
               </div>
-              <span className={`text-xl font-bold transition-colors ${isScrolled ? 'text-gray-900' : (session && pathname === '/') ? 'text-white' : 'text-green-700'
+              <span className={`text-xl font-bold transition-colors ${isScrolled ? 'text-gray-900' : showWhiteText ? 'text-white' : 'text-green-700'
                 }`}>
                 PanenKu
               </span>
@@ -119,14 +64,14 @@ export function Navbar() {
             {/* Right side items */}
             <div className="flex items-center gap-2">
               {/* Admin Link */}
-              {(session?.user as any)?.role === 'admin' && (
-                <Link href="/admin">
+              {isAdmin && (
+                <Link href={ROUTES.ADMIN}>
                   <Button
                     variant="ghost"
                     size="sm"
                     className={`transition-colors ${isScrolled
                       ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                      : (session && pathname === '/') ? 'text-white hover:bg-white/20' : 'text-green-700 hover:text-green-900 hover:bg-green-100'
+                      : showWhiteText ? 'text-white hover:bg-white/20' : 'text-green-700 hover:text-green-900 hover:bg-green-100'
                       } ${pathname?.startsWith('/admin') ? 'font-medium' : ''}`}
                   >
                     Admin
@@ -135,14 +80,14 @@ export function Navbar() {
               )}
 
               {/* Farmer/Mitra Dashboard Link */}
-              {(session?.user as any)?.role === 'farmer' && (
-                <Link href="/mitra">
+              {isFarmer && (
+                <Link href={ROUTES.MITRA}>
                   <Button
                     variant="ghost"
                     size="sm"
                     className={`transition-colors ${isScrolled
                       ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                      : (session && pathname === '/') ? 'text-white hover:bg-white/20' : 'text-green-700 hover:text-green-900 hover:bg-green-100'
+                      : showWhiteText ? 'text-white hover:bg-white/20' : 'text-green-700 hover:text-green-900 hover:bg-green-100'
                       } ${pathname?.startsWith('/mitra') ? 'font-medium bg-green-100' : ''}`}
                   >
                     🌾 Petani Dashboard
@@ -151,15 +96,15 @@ export function Navbar() {
               )}
 
               {/* Cart Preview - Only show when logged in */}
-              {session && (
+              {isAuthenticated && (
                 <CartPreview
                   isScrolled={isScrolled}
-                  isLoggedIn={!!session && pathname === '/'}
+                  isLoggedIn={isHomePage}
                 />
               )}
 
               {/* User Menu */}
-              {session?.user ? (
+              {isAuthenticated && user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -167,35 +112,35 @@ export function Navbar() {
                       size="sm"
                       className={`gap-2 transition-colors ${isScrolled
                         ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                        : (session && pathname === '/') ? 'text-white hover:bg-white/20' : 'text-green-700 hover:text-green-900 hover:bg-green-100'
+                        : showWhiteText ? 'text-white hover:bg-white/20' : 'text-green-700 hover:text-green-900 hover:bg-green-100'
                         }`}
                     >
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium ${isScrolled
                         ? 'bg-green-100 text-green-700'
-                        : (session && pathname === '/')
+                        : showWhiteText
                           ? 'bg-white/30 text-white'
                           : 'bg-green-100 text-green-700'
                         }`}>
-                        {session.user.name?.charAt(0).toUpperCase()}
+                        {user.name?.charAt(0).toUpperCase()}
                       </div>
-                      <span className="hidden sm:inline">{session.user.name?.split(' ')[0]}</span>
+                      <span className="hidden sm:inline">{user.name?.split(' ')[0]}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-64 p-2 mt-2">
                     <DropdownMenuLabel className="font-normal p-3 bg-gray-50 rounded-lg mb-2">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold">
-                          {session.user.name?.charAt(0).toUpperCase()}
+                          {user.name?.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 truncate bg-transparent">{session.user.name}</p>
-                          <p className="text-xs text-gray-500 truncate bg-transparent">{session.user.email}</p>
+                          <p className="font-medium text-gray-900 truncate bg-transparent">{user.name}</p>
+                          <p className="text-xs text-gray-500 truncate bg-transparent">{user.email}</p>
                         </div>
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator className="my-1" />
                     <DropdownMenuItem asChild className="cursor-pointer rounded-md p-2 hover:bg-green-50 focus:bg-green-50 focus:text-green-700">
-                      <Link href="/profile" className="flex items-center gap-2.5">
+                      <Link href={ROUTES.PROFILE} className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
                           <User className="w-4 h-4" />
                         </div>
@@ -206,7 +151,7 @@ export function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer rounded-md p-2 hover:bg-green-50 focus:bg-green-50 focus:text-green-700">
-                      <Link href="/orders" className="flex items-center gap-2.5">
+                      <Link href={ROUTES.ORDERS} className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-600">
                           <ShoppingCart className="w-4 h-4" />
                         </div>
@@ -219,7 +164,7 @@ export function Navbar() {
 
                     <DropdownMenuSeparator className="my-1" />
                     <DropdownMenuItem
-                      onClick={handleChatSupport}
+                      onClick={openSupportChat}
                       className="cursor-pointer rounded-md p-2 hover:bg-green-50 focus:bg-green-50 focus:text-green-700"
                     >
                       <div className="flex items-center gap-2.5">
@@ -235,7 +180,7 @@ export function Navbar() {
 
                     <DropdownMenuSeparator className="my-1" />
                     <DropdownMenuItem
-                      onClick={handleLogout}
+                      onClick={logout}
                       className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer gap-2.5 rounded-md p-2"
                     >
                       <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
@@ -246,7 +191,7 @@ export function Navbar() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Link href="/login">
+                <Link href={ROUTES.LOGIN}>
                   <Button
                     size="sm"
                     className={`transition-all ${isScrolled
@@ -265,7 +210,7 @@ export function Navbar() {
       {activeChatRoom && (
         <ChatBox
           room={activeChatRoom}
-          onClose={() => setActiveChatRoom(null)}
+          onClose={closeSupportChat}
         />
       )}
     </>

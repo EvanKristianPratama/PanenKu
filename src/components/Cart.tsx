@@ -7,11 +7,12 @@ import { Textarea } from './ui/textarea';
 import { Trash2, Plus, Minus, ShoppingBag, LogIn, CheckCircle, MapPin, FileText, RefreshCw, Clock, User } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useCart } from "@/context/CartContext";
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { ROUTES } from '@/constants/routes';
 
 const FREQUENCY_OPTIONS = [
   { value: 'weekly', label: 'Mingguan', desc: '7 hari', color: 'from-emerald-500 to-teal-500' },
@@ -34,7 +35,7 @@ interface SavedAddress {
 
 export function Cart() {
   const { cartItems: items, updateQuantity: onUpdateQuantity, removeFromCart: onRemoveItem, clearCart } = useCart();
-  const { data: session } = useSession();
+  const { isAuthenticated } = useAuth();
   const router = useRouter();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [shippingAddress, setShippingAddress] = useState('');
@@ -47,7 +48,7 @@ export function Cart() {
 
   // Fetch saved address
   useEffect(() => {
-    if (session?.user) {
+    if (isAuthenticated) {
       fetch('/api/user/profile')
         .then(res => res.json())
         .then(data => {
@@ -62,7 +63,7 @@ export function Cart() {
         })
         .catch(err => console.error('Failed to fetch profile:', err));
     }
-  }, [session]);
+  }, [isAuthenticated]);
 
   // Initialize subscriptions state when items change
   useEffect(() => {
@@ -107,9 +108,9 @@ export function Cart() {
   };
 
   const handleCheckout = async () => {
-    if (!session) {
+    if (!isAuthenticated) {
       toast.error('Silakan login untuk melanjutkan checkout');
-      router.push('/login');
+      router.push(ROUTES.LOGIN);
       return;
     }
 
@@ -162,7 +163,7 @@ export function Cart() {
                 frequency: sub.frequency,
                 orderId: data.order._id,
                 shippingAddress: {
-                  name: savedAddress?.name || session.user?.name || 'Pelanggan',
+                  name: savedAddress?.name || 'Pelanggan',
                   phone: savedAddress?.phone || '-',
                   address: addressParts[0] || shippingAddress,
                   city: addressParts[1] || savedAddress?.city || 'Indonesia',
@@ -337,7 +338,7 @@ export function Cart() {
             })}
 
             {/* Shipping Info Card */}
-            {session && (
+            {isAuthenticated && (
               <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-2xl overflow-hidden">
                 <CardContent className="p-6">
                   <h3 className="font-bold text-lg mb-5 flex items-center gap-2">
@@ -443,7 +444,7 @@ export function Cart() {
                   </div>
                 </div>
 
-                {session ? (
+                {isAuthenticated ? (
                   <>
                     {!shippingAddress.trim() && (
                       <p className="text-sm text-amber-500 mb-4 flex items-center gap-2 bg-amber-50 px-3 py-2 rounded-lg">
@@ -467,7 +468,7 @@ export function Cart() {
                     </Button>
                   </>
                 ) : (
-                  <Link href="/login" className="block">
+                  <Link href={ROUTES.LOGIN} className="block">
                     <Button className="w-full h-14 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-lg font-semibold shadow-xl shadow-emerald-500/25 rounded-xl">
                       <LogIn className="w-5 h-5 mr-2" />
                       Login untuk Checkout

@@ -1,21 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import { Product } from '../types';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Card, CardContent } from './ui/card';
-import { MapPin, User, Package, ShoppingCart, Minus, Plus, Star, Truck, Leaf, Calendar } from 'lucide-react';
-import { useState } from 'react';
-import { useCart } from '@/context/CartContext';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { MapPin, User, Package, ShoppingCart, Minus, Plus, Star, Truck, Leaf, Calendar, MessageCircle } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { MessageCircle, X } from 'lucide-react';
-import { useChat } from '@/hooks/useChat';
 import { ChatBox } from './chat/ChatBox';
-import { ChatRoom } from '@/types';
-import { showAlert } from '@/lib/sweetalert';
+import { useCartActions } from '@/hooks/useCartActions';
+import { useFarmerChat } from '@/hooks/useFarmerChat';
 
 interface ProductDetailProps {
   product: Product;
@@ -23,55 +17,26 @@ interface ProductDetailProps {
 
 export function ProductDetail({ product }: ProductDetailProps) {
   const [quantity, setQuantity] = useState(1);
-  const { addToCart } = useCart();
-  const { data: session } = useSession();
-  const router = useRouter();
-  const { createProductChat, isAuthenticated } = useChat();
-  const [activeChatRoom, setActiveChatRoom] = useState<ChatRoom | null>(null);
-  const [isChatLoading, setIsChatLoading] = useState(false);
+  
+  // Custom hooks untuk logic
+  const { addToCart } = useCartActions();
+  const {
+    activeChatRoom,
+    isLoading: isChatLoading,
+    openFarmerChat,
+    closeFarmerChat,
+  } = useFarmerChat({
+    farmerId: product.farmerId,
+    farmerName: product.farmer,
+    productId: product.id,
+    productName: product.name,
+  });
 
-  const handleChatFarmer = async () => {
-    if (!isAuthenticated) {
-      showAlert.error('Login Diperlukan', 'Silakan login untuk chat dengan petani');
-      router.push('/login');
-      return;
+  const handleAddToCart = async () => {
+    const success = await addToCart(product, quantity);
+    if (success) {
+      setQuantity(1);
     }
-
-    if (!product.farmerId) {
-      showAlert.error('Error', 'Informasi petani tidak lengkap');
-      return;
-    }
-
-    setIsChatLoading(true);
-    try {
-      const room = await createProductChat(
-        product.farmerId,
-        product.farmer,
-        String(product.id),
-        product.name
-      );
-
-      if (room) {
-        setActiveChatRoom(room);
-      } else {
-        showAlert.error('Info', 'Tidak dapat memulai chat');
-      }
-    } catch (error) {
-      console.error('Chat error:', error);
-      showAlert.error('Gagal Memulai Chat', 'Terjadi kesalahan');
-    } finally {
-      setIsChatLoading(false);
-    }
-  };
-
-  const handleAddToCart = () => {
-    if (!session) {
-      toast.error('Silakan login terlebih dahulu');
-      router.push('/login');
-      return;
-    }
-    addToCart(product, quantity);
-    setQuantity(1);
   };
 
   const getDaysUntilHarvest = () => {
@@ -249,7 +214,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
 
                   <Button
                     className="w-full bg-white border-2 border-green-600 text-green-700 hover:bg-green-50"
-                    onClick={handleChatFarmer}
+                    onClick={openFarmerChat}
                     disabled={isChatLoading}
                   >
                     <MessageCircle className="w-4 h-4 mr-2" />
@@ -264,7 +229,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
       {activeChatRoom && (
         <ChatBox
           room={activeChatRoom}
-          onClose={() => setActiveChatRoom(null)}
+          onClose={closeFarmerChat}
         />
       )}
     </div>

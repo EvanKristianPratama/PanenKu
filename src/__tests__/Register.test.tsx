@@ -1,13 +1,14 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Register } from '@/components/Register';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 vi.mock('next-auth/react');
 vi.mock('next/navigation');
 
-describe('Register', () => {
+describe('Register Component', () => {
     const mockPush = vi.fn();
     const mockRefresh = vi.fn();
 
@@ -20,32 +21,26 @@ describe('Register', () => {
         global.fetch = vi.fn();
     });
 
-    it('should render registration form', () => {
+    it('should render registration form correctly', () => {
         render(<Register />);
 
         expect(screen.getByLabelText(/nama lengkap/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-        expect(screen.getAllByLabelText(/password/i)[0]).toBeInTheDocument();
-        expect(screen.getByText('Daftar Sekarang')).toBeInTheDocument();
+        expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/konfirmasi/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /daftar sekarang/i })).toBeInTheDocument();
     });
 
     it('should show error when passwords do not match', async () => {
+        const user = userEvent.setup();
         render(<Register />);
 
-        fireEvent.change(screen.getByLabelText(/nama lengkap/i), {
-            target: { value: 'Test User' }
-        });
-        fireEvent.change(screen.getByLabelText(/email/i), {
-            target: { value: 'test@example.com' }
-        });
-        fireEvent.change(screen.getAllByLabelText(/password/i)[0], {
-            target: { value: 'password123' }
-        });
-        fireEvent.change(screen.getByLabelText(/konfirmasi/i), {
-            target: { value: 'different' }
-        });
+        await user.type(screen.getByLabelText(/nama lengkap/i), 'Test User');
+        await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+        await user.type(screen.getByLabelText(/^password$/i), 'password123');
+        await user.type(screen.getByLabelText(/konfirmasi/i), 'different');
 
-        fireEvent.click(screen.getByText('Daftar Sekarang'));
+        await user.click(screen.getByRole('button', { name: /daftar sekarang/i }));
 
         await waitFor(() => {
             expect(screen.getByText('Password tidak cocok')).toBeInTheDocument();
@@ -53,22 +48,15 @@ describe('Register', () => {
     });
 
     it('should show error when password is too short', async () => {
+        const user = userEvent.setup();
         render(<Register />);
 
-        fireEvent.change(screen.getByLabelText(/nama lengkap/i), {
-            target: { value: 'Test User' }
-        });
-        fireEvent.change(screen.getByLabelText(/email/i), {
-            target: { value: 'test@example.com' }
-        });
-        fireEvent.change(screen.getAllByLabelText(/password/i)[0], {
-            target: { value: '12345' }
-        });
-        fireEvent.change(screen.getByLabelText(/konfirmasi/i), {
-            target: { value: '12345' }
-        });
+        await user.type(screen.getByLabelText(/nama lengkap/i), 'Test User');
+        await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+        await user.type(screen.getByLabelText(/^password$/i), '12345');
+        await user.type(screen.getByLabelText(/konfirmasi/i), '12345');
 
-        fireEvent.click(screen.getByText('Daftar Sekarang'));
+        await user.click(screen.getByRole('button', { name: /daftar sekarang/i }));
 
         await waitFor(() => {
             expect(screen.getByText('Password minimal 6 karakter')).toBeInTheDocument();
@@ -76,6 +64,8 @@ describe('Register', () => {
     });
 
     it('should register successfully and redirect', async () => {
+        const user = userEvent.setup();
+
         (global.fetch as any).mockResolvedValueOnce({
             ok: true,
             json: async () => ({ success: true })
@@ -85,20 +75,12 @@ describe('Register', () => {
 
         render(<Register />);
 
-        fireEvent.change(screen.getByLabelText(/nama lengkap/i), {
-            target: { value: 'Test User' }
-        });
-        fireEvent.change(screen.getByLabelText(/email/i), {
-            target: { value: 'test@example.com' }
-        });
-        fireEvent.change(screen.getAllByLabelText(/password/i)[0], {
-            target: { value: 'password123' }
-        });
-        fireEvent.change(screen.getByLabelText(/konfirmasi/i), {
-            target: { value: 'password123' }
-        });
+        await user.type(screen.getByLabelText(/nama lengkap/i), 'Test User');
+        await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+        await user.type(screen.getByLabelText(/^password$/i), 'password123');
+        await user.type(screen.getByLabelText(/konfirmasi/i), 'password123');
 
-        fireEvent.click(screen.getByText('Daftar Sekarang'));
+        await user.click(screen.getByRole('button', { name: /daftar sekarang/i }));
 
         await waitFor(() => {
             expect(mockPush).toHaveBeenCalledWith('/');
